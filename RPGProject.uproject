@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{1D8C1C03-1805-170E-0023-00802A09B7DF}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "RPGProject",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"UMG",
+				"UMGEditor"
+			]
+		}
+	],
+	"TargetPlatforms": [
+		"LinuxNoEditor",
+		"MacNoEditor",
+		"WindowsNoEditor"
+	]
+}

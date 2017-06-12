@@ -73,3 +73,13 @@ Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+#project files
+*.pro
+*.pri
+*.workspace
+*.kdev4
+.kdev4
+RPGProjectCodeCompletionFolders.txt
+RPGProjectCodeLitePreProcessor.txt
+CMakeLists.txt

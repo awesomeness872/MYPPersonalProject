@@ -85,3 +85,6 @@ Makefile
 RPGProjectCodeCompletionFolders.txt
 RPGProjectCodeLitePreProcessor.txt
 CMakeLists.txt
+
+#KiteDemo
+Content/KiteDemo

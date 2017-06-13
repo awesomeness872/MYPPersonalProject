@@ -79,7 +79,9 @@ DerivedDataCache/*
 *.pri
 *.workspace
 *.kdev4
+.directory
 .kdev4
+Makefile
 RPGProjectCodeCompletionFolders.txt
 RPGProjectCodeLitePreProcessor.txt
 CMakeLists.txt

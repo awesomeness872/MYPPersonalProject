@@ -51,8 +51,8 @@ private:
     UFUNCTION()
     void WalkReleased();
 
-    UFUNCTION()
-    void LookAround();
+    /*UFUNCTION()
+    void LookAround();*/
 
     UFUNCTION()
     void JumpPressed();
@@ -71,12 +71,12 @@ private:
     void AimReleased();
 
     //function for using item being looked at
-    UFUNCTION()
-    void UseItem();
+    /*UFUNCTION()
+    void UseItem();*/
 
     //funcion for opening inventory
-    UFUNCTION()
-    void OpenInventory();
+    /*UFUNCTION()
+    void OpenInventory();*/
 
     //function for when player died
     UFUNCTION()

@@ -273,6 +273,29 @@ void AMainCharacter::Fire(){
         //reduce current ammo
         CurrentAmmo--;
 
+		//raycast to see if something that can be hit is in range
+		//calulate start and end location
+		FVector StartLocation = CameraComp->GetComponentLocation();
+		FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * ShootRaycastRange);
+
+		FHitResult RaycastHit;
+
+		//raycast should ignore character
+		FCollisionQueryParams CQP;
+		CQP.AddIgnoredActor(this);
+
+		//raycast
+		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
+
+		//show raycast
+		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0F, (uint8)'\000', 1.0F);
+
+		if (RaycastHit.GetActor() != nullptr) {
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Object Hit"));
+			}
+		}
+
         //prints "Gun fired" if GEngine is being used
         if (GEngine){
             GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Gun fired"));
@@ -291,6 +314,9 @@ void AMainCharacter::Dead(){
     GetMesh()->SetSimulatePhysics(true);
     GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
 
+	//disable input
+	GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+
     //changes value of bDeadCalled
     bDeadCalled = true;
 }
@@ -299,7 +325,7 @@ void AMainCharacter::Dead(){
 void AMainCharacter::RayCast(){
     //calulate start and end location
     FVector StartLocation = CameraComp->GetComponentLocation();
-    FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * RaycastRange);
+    FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * ItemRaycastRange);
 
     FHitResult RaycastHit;
 

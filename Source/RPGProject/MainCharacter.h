@@ -22,9 +22,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-    //The range of the raycast
+    //The range of the raycast for items
     UPROPERTY(EditAnywhere)
-    float RaycastRange = 250.f;
+    float ItemRaycastRange = 500.f;
+
+	//The range of the raycast for target
+	UPROPERTY(EditAnywhere)
+	float ShootRaycastRange = 10000.f;
 
 private:
 
@@ -51,9 +55,6 @@ private:
     UFUNCTION()
     void WalkReleased();
 
-    /*UFUNCTION()
-    void LookAround();*/
-
     UFUNCTION()
     void JumpPressed();
 
@@ -69,14 +70,6 @@ private:
 
     UFUNCTION()
     void AimReleased();
-
-    //function for using item being looked at
-    /*UFUNCTION()
-    void UseItem();*/
-
-    //funcion for opening inventory
-    /*UFUNCTION()
-    void OpenInventory();*/
 
     //function for when player died
     UFUNCTION()

@@ -287,8 +287,8 @@ void AMainCharacter::Fire(){
 		//raycast
 		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
 
-		//show raycast
-		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0F, (uint8)'\000', 1.0F);
+		//draw line on raycast
+		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.5F, (uint8)'\000', 1.0F);
 
 		if (RaycastHit.GetActor() != nullptr) {
 			if (GEngine) {

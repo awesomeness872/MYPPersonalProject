@@ -37,10 +37,7 @@ void AMC_PlayerController::HandleInventoryInput(){
     AMainCharacter* Char = Cast<AMainCharacter>(GetPawn());
 
     if (InventoryWidgetRef){
-        if (bIsInventoryOpen){     
-            //unpause game
-            SetPause(false);
-
+        if (bIsInventoryOpen){    
             //mark the inventory as closed
             bIsInventoryOpen = false;
 
@@ -55,9 +52,6 @@ void AMC_PlayerController::HandleInventoryInput(){
             InventoryWidgetRef->RemoveFromViewport();
         }
         else {
-            //pause game
-            SetPause(true);
-
             //mark inventory as open
             bIsInventoryOpen = true;
 

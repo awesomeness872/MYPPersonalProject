@@ -42,3 +42,7 @@ void APickupItem::SetGlowEffect(bool Status)
 FName APickupItem::GetActionText(){
     return ActionText;
 }
+
+void APickupItem::UseItem_Implementation()
+{
+}

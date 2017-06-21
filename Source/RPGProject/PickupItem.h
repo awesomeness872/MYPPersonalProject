@@ -23,6 +23,12 @@ public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void UseItem();
+
+	UFUNCTION()
+	void UseItem_Implementation();
+
     //variable for item mesh
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     UStaticMeshComponent* PickupMesh;

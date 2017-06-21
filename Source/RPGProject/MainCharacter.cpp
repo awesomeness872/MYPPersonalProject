@@ -366,7 +366,8 @@ void AMainCharacter::PickupItem(){
             Inventory[AvailableSlot] = LastSeenItem;
 
             //destroy item from game
-            LastSeenItem->Destroy();
+			LastSeenItem->SetActorEnableCollision(false);
+			LastSeenItem->PickupMesh->SetVisibility(false);
         }
         else{
             if (GEngine){
@@ -424,6 +425,9 @@ void AMainCharacter::DropEquippedItem(){
 
             //spawning our pickup
             APickupItem* PickupToSpawn = GetWorld()->SpawnActor<APickupItem>(CurrentlyEquippedItem->GetClass(), Transform, SpawnParams);
+
+			//delete old actor
+			CurrentlyEquippedItem->Destroy();
 
             if (PickupToSpawn){
                 //unreference item just placed
@@ -503,6 +507,10 @@ UTexture2D* AMainCharacter::GetLSIImage(){
     else {
         return nullptr;
     }
+}
+
+void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
+	CurrentlyEquippedItem = Item;
 }
 
 //called when numpad 1 is pressed

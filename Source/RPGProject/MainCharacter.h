@@ -194,9 +194,12 @@ public:
     UFUNCTION(BlueprintCallable)
     UTexture2D* GetLSIImage();
 
-    //sets a new equipper item based on texture
+    //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
     void SetEquippedItem(UTexture2D* Texture);
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentlyEquippedItem(APickupItem* Item);
 
     UFUNCTION(BlueprintCallable)
     TArray<APickupItem*> GetInventory() { return Inventory; }

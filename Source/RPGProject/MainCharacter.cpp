@@ -213,7 +213,7 @@ void AMainCharacter::SprintPressed(){
         bIsSprinting = true;
 
         //zoom out
-        CameraComp->SetRelativeLocation(FVector(-175.0f, 80.0f, 80.0f));
+        CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
 
         //prints "Sprinting" when GEngine is being used
         if (GEngine){
@@ -238,12 +238,12 @@ void AMainCharacter::SprintReleased(){
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-    if (!InventoryOpen){
+    if (!bIsInventoryOpen){
         //slow character
         WalkPressed();
 
         //zoom in
-        CameraComp->SetRelativeLocation(FVector(-80.0f, 70.0f, 80.0f));
+        CameraComp->SetRelativeLocation(FVector(-80.0f, 70.0f, 90.0f));
 
         //prints "Gun fired" if GEngine is being used
         if (GEngine){
@@ -258,7 +258,7 @@ void AMainCharacter::AimReleased(){
     WalkReleased();
 
     //zoom out
-    CameraComp->SetRelativeLocation(FVector(-175.0f, 80.0f, 80.0f));
+    CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
 
     //prints "Gun fired" if GEngine is being used
     if (GEngine){
@@ -368,6 +368,10 @@ void AMainCharacter::PickupItem(){
             //destroy item from game
 			LastSeenItem->SetActorEnableCollision(false);
 			LastSeenItem->PickupMesh->SetVisibility(false);
+
+			if (bIsInventoryOpen) {
+				InventoryRef->Show();
+			}
         }
         else{
             if (GEngine){
@@ -379,10 +383,10 @@ void AMainCharacter::PickupItem(){
 
 //called when inventory is pressed
 void AMainCharacter::HandleInventoryInput(){
-    if (InventoryOpen){
-        InventoryOpen = false;
+    if (bIsInventoryOpen){
+        bIsInventoryOpen = false;
     }
-    else InventoryOpen = true;
+    else bIsInventoryOpen = true;
     AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
     if (Con) Con->HandleInventoryInput();
 }
@@ -435,6 +439,20 @@ void AMainCharacter::DropEquippedItem(){
             }
         }
     }
+}
+
+//called when item is used from inventory, removes from inventory and world
+void AMainCharacter::ItemUsed() {
+	if (CurrentlyEquippedItem) {
+		int32 IndexOfItem;
+		if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
+			//destroy item in world
+			CurrentlyEquippedItem->Destroy();
+
+			//unreference item just used
+			Inventory[IndexOfItem] = nullptr;
+		}
+	}
 }
 
 //called manually, returns  value of bIsAimingDownSights
@@ -509,6 +527,9 @@ UTexture2D* AMainCharacter::GetLSIImage(){
     }
 }
 
+bool AMainCharacter::GetIsInventoryOpen() {
+	return bIsInventoryOpen;
+}
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
 	CurrentlyEquippedItem = Item;
 }

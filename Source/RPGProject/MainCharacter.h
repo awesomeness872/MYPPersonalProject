@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "PickupItem.h"
 #include "MC_PlayerController.h"
+#include "InventoryWidget.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
@@ -88,7 +89,7 @@ private:
     void PickupItem();
 
     UPROPERTY()
-    bool InventoryOpen = false;
+    bool bIsInventoryOpen = false;
 
     //The actual Inventory
     UPROPERTY(VisibleAnywhere)
@@ -143,6 +144,9 @@ private:
     // Called to bind functionality to input
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY()
+	UInventoryWidget* InventoryRef;
+
     //functions for dev mode
     //function called when numpad 1 is pressed
     UFUNCTION()
@@ -194,6 +198,9 @@ public:
     UFUNCTION(BlueprintCallable)
     UTexture2D* GetLSIImage();
 
+	UFUNCTION(BlueprintCallable)
+	bool GetIsInventoryOpen();
+
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
     void SetEquippedItem(UTexture2D* Texture);
@@ -207,7 +214,10 @@ public:
     UFUNCTION(BlueprintCallable)
     void DropEquippedItem();
 
-    UFUNCTION(BlueprintCallable)
-    void HandleInventoryInput();
+	UFUNCTION(BlueprintCallable)
+	void HandleInventoryInput();
+
+	UFUNCTION(BlueprintCallable)
+	void ItemUsed();
 
 };

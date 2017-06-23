@@ -111,20 +111,22 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 //called when W or S is pressed, adds directional input
 void AMainCharacter::MoveForward(float Value)
 {
-    if ( (Controller != NULL) && (Value != 0.0f) )
-    {
-        bIsMoving = true;
-        // find out which way is forward
-        FRotator Rotation = Controller->GetControlRotation();
-        // Limit pitch when walking or falling
-        if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling() )
-        {
-            Rotation.Pitch = 0.0f;
-        }
-        // add movement in that direction
-        const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
-        AddMovementInput(Direction, Value);
-    }
+	if (bIsSprinting && Value <= 0) {
+		
+	}
+	else if ((Controller != NULL) && (Value != 0.0f)) {
+		bIsMoving = true;
+		// find out which way is forward
+		FRotator Rotation = Controller->GetControlRotation();
+		// Limit pitch when walking or falling
+		if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling())
+		{
+			Rotation.Pitch = 0.0f;
+		}
+		// add movement in that direction
+		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+		AddMovementInput(Direction, Value);
+	}
     if (Value == 0){
         bIsMoving = false;
     }

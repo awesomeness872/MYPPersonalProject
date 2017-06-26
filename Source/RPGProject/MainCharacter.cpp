@@ -1,6 +1,7 @@
 // Copyright 2017 Paul Murray GPLv3
 
 #include "RPGProject.h"
+#include "GunActor.h"
 #include "MainCharacter.h"
 
 
@@ -9,13 +10,15 @@ AMainCharacter::AMainCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
     //create cameracomp
     CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
+
     //attach to capsule
     CameraComp->SetupAttachment(GetCapsuleComponent());
+
     //allow pawn to control rotation
     CameraComp->bUsePawnControlRotation = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -479,7 +482,7 @@ float AMainCharacter::GetCurrentAmmo(){
 
 //called manually, returns value of TotalAmmo
 float AMainCharacter::GetTotalAmmo(){
-    return TotalAmmo;
+    return MaxAmmo;
 }
 
 //called manually, returns value of Health
@@ -529,17 +532,52 @@ UTexture2D* AMainCharacter::GetLSIImage(){
     }
 }
 
+APickupItem* AMainCharacter::GetLSI() {
+	if (LastSeenItem) {
+		return LastSeenItem;
+	}
+	else {
+		return nullptr;
+	}
+}
+
 bool AMainCharacter::GetIsInventoryOpen() {
 	return bIsInventoryOpen;
 }
+
+bool AMainCharacter::GetIsAutomaticWeapon() {
+	return bIsAutomaticWeapon;
+}
+
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
 	CurrentlyEquippedItem = Item;
+}
+
+void AMainCharacter::SetMaxAmmo(float NewMaxAmmo) {
+	MaxAmmo = NewMaxAmmo;
+}
+
+void AMainCharacter::SetGunMesh(UStaticMesh* NewGunMesh) {
+	GunMesh = NewGunMesh;
+}
+
+void  AMainCharacter::SetDamagePerRound(float NewDPR) {
+	DamagePerRound = NewDPR;
+
+}
+
+void  AMainCharacter::SetRateOfFire(float NewRateOfFire) {
+	RateOfFire = NewRateOfFire;
+}
+
+void AMainCharacter::SetIsAutomaticWeapon(bool bIsAutomatic) {
+	bIsAutomaticWeapon = bIsAutomatic;
 }
 
 //called when numpad 1 is pressed
 void AMainCharacter::Num1(){
     //set current ammo equal to total ammo
-    CurrentAmmo = TotalAmmo;
+    CurrentAmmo = MaxAmmo;
 }
 
 //called when numpad 2 is pressed

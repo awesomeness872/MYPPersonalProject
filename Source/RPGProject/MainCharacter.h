@@ -37,6 +37,12 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* CameraComp;
 
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* GunComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UStaticMesh* GunMesh;
+
     //functions for movement inputs
     UFUNCTION()
     void MoveForward(float Value);
@@ -136,7 +142,13 @@ private:
 
     //variable storing total ammo
     UPROPERTY()
-    float TotalAmmo = 25;
+    float MaxAmmo = 25;
+
+	UPROPERTY()
+	float DamagePerRound;
+
+	UPROPERTY()
+	float RateOfFire;
 
     // Called every frame
     virtual void Tick(float DeltaTime) override;
@@ -146,6 +158,9 @@ private:
 
 	UPROPERTY()
 	UInventoryWidget* InventoryRef;
+
+	UPROPERTY()
+	bool bIsAutomaticWeapon = true;
 
     //functions for dev mode
     //function called when numpad 1 is pressed
@@ -199,7 +214,13 @@ public:
     UTexture2D* GetLSIImage();
 
 	UFUNCTION(BlueprintCallable)
+	APickupItem* GetLSI();
+
+	UFUNCTION(BlueprintCallable)
 	bool GetIsInventoryOpen();
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsAutomaticWeapon();
 
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
@@ -219,5 +240,20 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ItemUsed();
+
+	UFUNCTION(BlueprintCallable)
+	void SetMaxAmmo(float NewMaxAmmo);
+
+	UFUNCTION(BlueprintCallable)
+	void SetGunMesh(UStaticMesh* NewGunMesh);
+
+	UFUNCTION(BlueprintCallable)
+	void SetDamagePerRound(float NewDPR);
+
+	UFUNCTION(BlueprintCallable)
+	void SetRateOfFire(float NewRateOfFire);
+
+	UFUNCTION(BlueprintCallable)
+	void SetIsAutomaticWeapon(bool bIsAutomatic);
 
 };

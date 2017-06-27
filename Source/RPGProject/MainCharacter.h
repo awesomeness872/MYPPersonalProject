@@ -37,11 +37,11 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* CameraComp;
 
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* GunComp;
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	USkeletalMeshComponent* GunComp;
 
-	UPROPERTY(VisibleAnywhere)
-	UStaticMesh* GunMesh;
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	USkeletalMesh* GunMesh;
 
     //functions for movement inputs
     UFUNCTION()
@@ -150,6 +150,9 @@ private:
 	UPROPERTY()
 	float RateOfFire;
 
+	UPROPERTY()
+	bool bIsAutomaticWeapon = true;
+
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
@@ -158,9 +161,6 @@ private:
 
 	UPROPERTY()
 	UInventoryWidget* InventoryRef;
-
-	UPROPERTY()
-	bool bIsAutomaticWeapon = true;
 
     //functions for dev mode
     //function called when numpad 1 is pressed
@@ -222,6 +222,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool GetIsAutomaticWeapon();
 
+	UFUNCTION(BlueprintCallable)
+	USkeletalMeshComponent* GetGunComp();
+
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
     void SetEquippedItem(UTexture2D* Texture);
@@ -245,7 +248,7 @@ public:
 	void SetMaxAmmo(float NewMaxAmmo);
 
 	UFUNCTION(BlueprintCallable)
-	void SetGunMesh(UStaticMesh* NewGunMesh);
+	void SetGunMesh(USkeletalMesh* NewGunMesh);
 
 	UFUNCTION(BlueprintCallable)
 	void SetDamagePerRound(float NewDPR);

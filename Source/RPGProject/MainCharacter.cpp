@@ -19,6 +19,9 @@ AMainCharacter::AMainCharacter()
 
     //allow pawn to control rotation
     CameraComp->bUsePawnControlRotation = true;
+
+	//initialize GunComp
+	GunComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun Component"));
 }
 
 // Called when the game starts or when spawned
@@ -35,6 +38,9 @@ void AMainCharacter::BeginPlay()
 
     //initialize inventory
     Inventory.SetNum(MAX_INVENTORY_ITEMS);
+
+	//set GunComp to socket
+	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 }
 
 // Called every frame
@@ -549,6 +555,10 @@ bool AMainCharacter::GetIsAutomaticWeapon() {
 	return bIsAutomaticWeapon;
 }
 
+USkeletalMeshComponent* AMainCharacter::GetGunComp() {
+	return GunComp;
+}
+
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
 	CurrentlyEquippedItem = Item;
 }
@@ -557,8 +567,8 @@ void AMainCharacter::SetMaxAmmo(float NewMaxAmmo) {
 	MaxAmmo = NewMaxAmmo;
 }
 
-void AMainCharacter::SetGunMesh(UStaticMesh* NewGunMesh) {
-	GunMesh = NewGunMesh;
+void AMainCharacter::SetGunMesh(USkeletalMesh* NewGunMesh) {
+	GunComp->SetSkeletalMesh(NewGunMesh);
 }
 
 void  AMainCharacter::SetDamagePerRound(float NewDPR) {

@@ -103,6 +103,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     //inputs for sprinting
     PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMainCharacter::SprintPressed);
     PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMainCharacter::SprintReleased);
+	//inputs for crouching
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMainCharacter::CrouchPressed);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMainCharacter::CrouchReleased);
     //inputs for weapon control
     PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMainCharacter::AimPressed);
     PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMainCharacter::AimReleased);
@@ -162,14 +165,16 @@ void AMainCharacter::MoveRight(float Value)
 
 //called when jump is pressed, starts player jump and sets jumping to true
 void AMainCharacter::JumpPressed(){
-    if (Stamina >= .1){
-        //jump
-        bPressedJump = true;
+	if (!bIsCrouching || !bIsAimingDownSights){
+		if (Stamina >= .1) {
+			//jump
+			bPressedJump = true;
 
-        //reduce stamina
-        Stamina = Stamina - .1;
-        //set value of bIsJumping
-        bIsJumping = true;
+			//reduce stamina
+			Stamina = Stamina - .1;
+			//set value of bIsJumping
+			bIsJumping = true;
+		}
     }
 }
 
@@ -184,83 +189,126 @@ void AMainCharacter::JumpReleased(){
 
 //called when walk key is pressed, sets walk speed to 100 and prints "Walking"
 void AMainCharacter::WalkPressed(){
-    //sets speed to 265
-    GetCharacterMovement()->MaxWalkSpeed = 265.0f;
+	if (!bIsCrouching) {
+		//sets speed to 265
+		GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
-    //sets value of bIsAimingDownSights
-    bIsAimingDownSights = true;
+		//sets value of bIsAimingDownSights
+		bIsAimingDownSights = true;
 
-    //changes value fo bIsSprinting
-    bIsSprinting = false;
+		//changes value fo bIsSprinting
+		bIsSprinting = false;
 
-    //prints "Walkng" when GEngine is being used
-    if (GEngine){
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Walking"));
-    }
+		//prints "Walkng" when GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Walking"));
+		}
+	}
 }
 
 //called when walk key is released, sets walk speed to 600 and prints "Running"
 void AMainCharacter::WalkReleased(){
-    //sets speed to 595
-    GetCharacterMovement()->MaxWalkSpeed = 595.0f;
+	if (!bIsCrouching) {
+		//sets speed to 595
+		GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
-    //sets value of bIsAimingDownSights
-    bIsAimingDownSights = false;
+		//sets value of bIsAimingDownSights
+		bIsAimingDownSights = false;
 
-    //prints "Running" when GEngine is being used
-    if (GEngine){
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Running"));
-    }
+		//prints "Running" when GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Running"));
+		}
+	}
 }
 
 //called when sprint key is pressed, sets walk speed to 1000 and prints "Sprinting"
 void AMainCharacter::SprintPressed(){
-    //checks if stamina is high enough
-    if (Stamina >= .01){
-        //sets speed to 1000
-        GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
+	if (!bIsCrouching) {
+		//checks if stamina is high enough
+		if (Stamina >= .01) {
+			//sets speed to 1000
+			GetCharacterMovement()->MaxWalkSpeed = 1000.0f;
 
-        //set value of bIsSprinting
-        bIsSprinting = true;
+			//set value of bIsSprinting
+			bIsSprinting = true;
 
-        //zoom out
-        CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+			//zoom out
+			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
 
-        //prints "Sprinting" when GEngine is being used
-        if (GEngine){
-            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Sprinting"));
-        }
-    }
+			//prints "Sprinting" when GEngine is being used
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Sprinting"));
+			}
+		}
+	}
 }
 
 //called when sprint key is released, sets walk speed to 600 and prints "Running"
 void AMainCharacter::SprintReleased(){
-    //sets walk speed
-    GetCharacterMovement()->MaxWalkSpeed = 595.0f;
+	if (!bIsCrouching) {
+		//sets walk speed
+		GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
-    //set value of bIsSprinting
-    bIsSprinting = false;
+		//set value of bIsSprinting
+		bIsSprinting = false;
 
-    //prints "Running" when GEngine is being used
-    if (GEngine){
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Running"));
-    }
+		//prints "Running" when GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Running"));
+		}
+	}
+}
+
+//called when crouch key is pressed, sets walk speed to 265 and changes value of bIsCrouched
+void AMainCharacter::CrouchPressed() {
+	//set walk speed
+	GetCharacterMovement()->MaxWalkSpeed = 265.0f;
+
+	//set value of bIsCrouching
+	bIsCrouching = true;
+
+	//lowers camera
+	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+
+	//prints "Crouching"
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Crouching"));
+	}
+}
+
+//called when crouch key is released, sets player to default speed and changes value of bIsCrouched
+void AMainCharacter::CrouchReleased() {
+	//set walking
+	WalkReleased();
+
+	//put camera back
+	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+
+	//set value of bIsCrouching
+	bIsCrouching = false;
 }
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-    if (!bIsInventoryOpen){
-        //slow character
-        WalkPressed();
+		if (!bIsInventoryOpen) {
+			//slow character
+			WalkPressed();
 
-        //zoom in
-        CameraComp->SetRelativeLocation(FVector(-80.0f, 70.0f, 90.0f));
+			if (bIsCrouching) {
+				//zoom in
+				CameraComp->SetRelativeLocation(FVector(-100.0f, 70.0f, 30.0f));
+			}
+			else {
+				//zoom in
+				CameraComp->SetRelativeLocation(FVector(-80.0f, 70.0f, 90.0f));
+			}
 
-        //prints "Gun fired" if GEngine is being used
-        if (GEngine){
-            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Aim pressed"));
-        }
-    }
+			//prints "Gun fired" if GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Aim pressed"));
+		}
+	}
 }
 
 //called when aim is released, restores speed and zooms out
@@ -268,8 +316,14 @@ void AMainCharacter::AimReleased(){
     //restore speed
     WalkReleased();
 
-    //zoom out
-    CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+	if (bIsCrouching) {
+		//zoom out
+		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+	}
+	else {
+		//zoom out
+		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+	}
 
     //prints "Gun fired" if GEngine is being used
     if (GEngine){
@@ -557,6 +611,10 @@ bool AMainCharacter::GetIsAutomaticWeapon() {
 
 USkeletalMeshComponent* AMainCharacter::GetGunComp() {
 	return GunComp;
+}
+
+bool AMainCharacter::GetIsCrouching() {
+	return bIsCrouching;
 }
 
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {

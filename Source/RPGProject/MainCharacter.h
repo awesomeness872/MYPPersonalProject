@@ -67,6 +67,12 @@ private:
 
     UFUNCTION()
     void JumpReleased();
+	
+	UFUNCTION()
+	void CrouchPressed();
+
+	UFUNCTION()
+	void CrouchReleased();
 
     //functions for using gun
     UFUNCTION()
@@ -77,6 +83,9 @@ private:
 
     UFUNCTION()
     void AimReleased();
+
+	UFUNCTION()
+	void Reload();
 
     //function for when player died
     UFUNCTION()
@@ -128,6 +137,10 @@ private:
     UPROPERTY()
     bool bIsLookingAtPickup = false;
 
+	//variable for if player is crouching
+	UPROPERTY()
+	bool bIsCrouching;
+
     //variable storing health
     UPROPERTY()
     float Health = 1;
@@ -140,9 +153,13 @@ private:
     UPROPERTY()
     float CurrentAmmo = 25;
 
+	//variable storing max ammo in clip
+	UPROPERTY()
+	float MaxAmmo = 25;
+
     //variable storing total ammo
     UPROPERTY()
-    float MaxAmmo = 25;
+    float TotalAmmo = 25;
 
 	UPROPERTY()
 	float DamagePerRound;
@@ -221,6 +238,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool GetIsAutomaticWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsCrouching();
 
 	UFUNCTION(BlueprintCallable)
 	USkeletalMeshComponent* GetGunComp();

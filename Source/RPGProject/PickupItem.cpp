@@ -46,3 +46,19 @@ FName APickupItem::GetActionText(){
 void APickupItem::UseItem_Implementation()
 {
 }
+
+void APickupItem::SetPickupImage(UTexture2D* NewPickupImage) {
+	PickupImage = NewPickupImage;
+}
+
+void APickupItem::SetPickupName(FName NewPickupName) {
+	PickupName = NewPickupName;
+}
+
+void APickupItem::SetPickupDescription(FName NewPickupDescription) {
+	PickupDescription = NewPickupDescription;
+}
+
+void APickupItem::SetActionText(FName NewActionText) {
+	ActionText = NewActionText;
+}

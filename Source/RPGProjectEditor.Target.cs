@@ -5,21 +5,13 @@ using System.Collections.Generic;
 
 public class RPGProjectEditorTarget : TargetRules
 {
-	public RPGProjectEditorTarget(TargetInfo Target)
+	public RPGProjectEditorTarget(TargetInfo Target) : base (Target)
 	{
 		Type = TargetType.Editor;
-	}
+        ExtraModuleNames.Add("RPGProject");
+    }
 
 	//
 	// TargetRules interface.
 	//
-
-	public override void SetupBinaries(
-		TargetInfo Target,
-		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-		ref List<string> OutExtraModuleNames
-		)
-	{
-		OutExtraModuleNames.AddRange( new string[] { "RPGProject" } );
-	}
 }

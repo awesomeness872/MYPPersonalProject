@@ -57,5 +57,18 @@ public:
 
     //Returns the Texture of our Pickup
     FORCEINLINE UTexture2D* GetPickupTexture() { return PickupImage; }
+
+	//set item image
+	UFUNCTION(BlueprintCallable)
+		void SetPickupImage(UTexture2D* NewPickupImage);
+
+	UFUNCTION(BlueprintCallable)
+		void SetPickupName(FName NewPickupName);
+
+	UFUNCTION(BlueprintCallable)
+		void SetPickupDescription(FName NewPickupDescription);
+
+	UFUNCTION(BlueprintCallable)
+		void SetActionText(FName NewActionText);
 	
 };

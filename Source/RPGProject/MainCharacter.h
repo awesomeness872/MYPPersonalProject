@@ -10,6 +10,12 @@
 
 #define MAX_INVENTORY_ITEMS 10
 
+UENUM(BlueprintType)
+enum class EGunType : uint8
+{
+	GT_MG45	UMETA(DisplayName = "MG-45"),
+};
+
 UCLASS()
 class RPGPROJECT_API AMainCharacter : public ACharacter
 {
@@ -19,6 +25,14 @@ public:
 	// Sets default values for this character's properties
 	AMainCharacter();
 
+//set of variables for storing gun ammo
+private:
+	//variables for MG-45
+	UPROPERTY()
+		float CurrentAmmo_MG45;
+
+	UPROPERTY()
+		float TotalAmmo_MG45;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -75,6 +89,12 @@ private:
 	void CrouchReleased();
 
     //functions for using gun
+	UFUNCTION()
+		void FirePressed();
+
+	UFUNCTION()
+		void FireReleased();
+
     UFUNCTION()
     void Fire();
 
@@ -85,7 +105,10 @@ private:
     void AimReleased();
 
 	UFUNCTION()
-	void Reload();
+	void ReloadPressed();
+
+	UFUNCTION()
+	void ReloadReleased();
 
     //function for when player died
     UFUNCTION()
@@ -141,6 +164,12 @@ private:
 	UPROPERTY()
 	bool bIsCrouching;
 
+	UPROPERTY()
+	bool bIsReloading;
+
+	UPROPERTY()
+		bool bIsFiring;
+
     //variable storing health
     UPROPERTY()
     float Health = 1;
@@ -151,15 +180,15 @@ private:
 
     //variable storing current ammo amount
     UPROPERTY()
-    float CurrentAmmo = 25;
+    float CurrentAmmo = 30;
 
 	//variable storing max ammo in clip
 	UPROPERTY()
-	float MaxAmmo = 25;
+	float MaxAmmo = 30;
 
     //variable storing total ammo
     UPROPERTY()
-    float TotalAmmo = 25;
+    float TotalAmmo = 100;
 
 	UPROPERTY()
 	float DamagePerRound;
@@ -168,7 +197,10 @@ private:
 	float RateOfFire;
 
 	UPROPERTY()
-	bool bIsAutomaticWeapon = true;
+	bool bIsAutomaticWeapon = false;
+
+	UPROPERTY()
+	EGunType CurrentGunType;
 
     // Called every frame
     virtual void Tick(float DeltaTime) override;
@@ -178,6 +210,12 @@ private:
 
 	UPROPERTY()
 	UInventoryWidget* InventoryRef;
+
+	UPROPERTY()
+	FTimerHandle ReloadTimer;
+
+	UPROPERTY()
+		FTimerHandle FireTimer;
 
     //functions for dev mode
     //function called when numpad 1 is pressed
@@ -245,6 +283,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USkeletalMeshComponent* GetGunComp();
 
+	UFUNCTION(BlueprintCallable)
+	bool GetIsReloading();
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsFiring();
+
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
     void SetEquippedItem(UTexture2D* Texture);
@@ -252,17 +296,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentlyEquippedItem(APickupItem* Item);
 
-    UFUNCTION(BlueprintCallable)
-    TArray<APickupItem*> GetInventory() { return Inventory; }
-
-    UFUNCTION(BlueprintCallable)
-    void DropEquippedItem();
+	UFUNCTION(BlueprintCallable)
+		TArray<APickupItem*> GetInventory();
 
 	UFUNCTION(BlueprintCallable)
-	void HandleInventoryInput();
-
-	UFUNCTION(BlueprintCallable)
-	void ItemUsed();
+	EGunType GetCurrentGunType();
 
 	UFUNCTION(BlueprintCallable)
 	void SetMaxAmmo(float NewMaxAmmo);
@@ -279,4 +317,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetIsAutomaticWeapon(bool bIsAutomatic);
 
+	UFUNCTION(BlueprintCallable)
+	void AddAmmo(float AmmoToAdd, EGunType GunType);
+
+	UFUNCTION(BlueprintCallable)
+	void DropEquippedItem();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleInventoryInput();
+
+	UFUNCTION(BlueprintCallable)
+	void ItemUsed();
+
+	UFUNCTION(BlueprintCallable)
+		void SwitchGun(EGunType NewGun);
 };

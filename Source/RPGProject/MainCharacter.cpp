@@ -1,7 +1,6 @@
 // Copyright 2017 Paul Murray GPLv3
 
 #include "RPGProject.h"
-#include "GunActor.h"
 #include "MainCharacter.h"
 
 
@@ -41,6 +40,9 @@ void AMainCharacter::BeginPlay()
 
 	//set GunComp to socket
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
+
+	//set gun type fo MG-45, temporary
+	CurrentGunType = EGunType::GT_MG45;
 }
 
 // Called every frame
@@ -109,7 +111,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     //inputs for weapon control
     PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AMainCharacter::AimPressed);
     PlayerInputComponent->BindAction("Aim", IE_Released, this, &AMainCharacter::AimReleased);
-    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMainCharacter::Fire);
+    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMainCharacter::FirePressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMainCharacter::FireReleased);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AMainCharacter::ReloadPressed);
     //input for inventory actions
     PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AMainCharacter::PickupItem);
     PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &AMainCharacter::DropEquippedItem);
@@ -126,7 +130,7 @@ void AMainCharacter::MoveForward(float Value)
 	if (bIsSprinting && Value <= 0) {
 		
 	}
-	else if ((Controller != NULL) && (Value != 0.0f)) {
+	else if ((Controller != NULL) && (Value != 0.0f) && (!bIsReloading)) {
 		bIsMoving = true;
 		// find out which way is forward
 		FRotator Rotation = Controller->GetControlRotation();
@@ -147,8 +151,8 @@ void AMainCharacter::MoveForward(float Value)
 //called when A or D is pressed, adds directional input
 void AMainCharacter::MoveRight(float Value)
 {
-    if (!bIsSprinting){
-        if ( (Controller != NULL) && (Value != 0.0f) )
+    if (!bIsSprinting && !bIsReloading){
+        if ( (Controller != NULL) && (Value != 0.0f))
         {
             bIsMoving = true;
             // find out which way is right
@@ -165,7 +169,7 @@ void AMainCharacter::MoveRight(float Value)
 
 //called when jump is pressed, starts player jump and sets jumping to true
 void AMainCharacter::JumpPressed(){
-	if (!bIsCrouching || !bIsAimingDownSights){
+	if (!bIsCrouching && !bIsAimingDownSights && !bIsReloading){
 		if (Stamina >= .1) {
 			//jump
 			bPressedJump = true;
@@ -189,7 +193,7 @@ void AMainCharacter::JumpReleased(){
 
 //called when walk key is pressed, sets walk speed to 100 and prints "Walking"
 void AMainCharacter::WalkPressed(){
-	if (!bIsCrouching) {
+	if (!bIsCrouching && !bIsReloading) {
 		//sets speed to 265
 		GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
@@ -224,7 +228,7 @@ void AMainCharacter::WalkReleased(){
 
 //called when sprint key is pressed, sets walk speed to 1000 and prints "Sprinting"
 void AMainCharacter::SprintPressed(){
-	if (!bIsCrouching) {
+	if (!bIsCrouching && !bIsReloading) {
 		//checks if stamina is high enough
 		if (Stamina >= .01) {
 			//sets speed to 1000
@@ -262,18 +266,20 @@ void AMainCharacter::SprintReleased(){
 
 //called when crouch key is pressed, sets walk speed to 265 and changes value of bIsCrouched
 void AMainCharacter::CrouchPressed() {
-	//set walk speed
-	GetCharacterMovement()->MaxWalkSpeed = 265.0f;
+	if (!bIsReloading) {
+		//set walk speed
+		GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
-	//set value of bIsCrouching
-	bIsCrouching = true;
+		//set value of bIsCrouching
+		bIsCrouching = true;
 
-	//lowers camera
-	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+		//lowers camera
+		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
 
-	//prints "Crouching"
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Crouching"));
+		//prints "Crouching"
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Crouching"));
+		}
 	}
 }
 
@@ -291,7 +297,7 @@ void AMainCharacter::CrouchReleased() {
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-		if (!bIsInventoryOpen) {
+		if (!bIsInventoryOpen && !bIsReloading) {
 			//slow character
 			WalkPressed();
 
@@ -331,12 +337,38 @@ void AMainCharacter::AimReleased(){
     }
 }
 
-//called when fire is pressed, fires weapon
-void AMainCharacter::Fire(){
-    //checks if there is enough ammo
-    if (CurrentAmmo > 0){
-        //reduce current ammo
-        CurrentAmmo--;
+//called when fire is pressed
+void AMainCharacter::FirePressed() {
+	//set bIsFiring to true 
+	bIsFiring = true;
+	Fire();
+
+	if (bIsAutomaticWeapon) {
+		GetWorldTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::Fire, RateOfFire, true);
+	}
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Pressed"));
+	}
+}
+
+//called when fire is released
+void AMainCharacter::FireReleased() {
+	bIsFiring = false;
+
+	GetWorldTimerManager().ClearTimer(ReloadTimer);
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Released"));
+	}
+}
+
+//fires weapon
+void AMainCharacter::Fire() {
+	//checks if there is enough ammo
+	if (CurrentAmmo > 0 && !bIsReloading && bIsFiring) {
+		//reduce current ammo
+		CurrentAmmo--;
 
 		//raycast to see if something that can be hit is in range
 		//calulate start and end location
@@ -361,11 +393,46 @@ void AMainCharacter::Fire(){
 			}
 		}
 
-        //prints "Gun fired" if GEngine is being used
-        if (GEngine){
-            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Gun fired"));
-        }
-    }
+		//prints "Gun fired" if GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Gun fired"));
+		}
+	}
+}
+
+//called when reload is pressed. sets value of Reloading
+void AMainCharacter::ReloadPressed() {
+	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && GetVelocity() == FVector(0.0f, 0.0f, 0.0f)) {
+		bIsReloading = true;
+		//check if there is enough ammo to reload
+		if (TotalAmmo >= MaxAmmo) {
+			//decide how much ammo to add to current ammo
+			float AmmoDiff = MaxAmmo - CurrentAmmo;
+
+			//set clip full
+			CurrentAmmo = CurrentAmmo + AmmoDiff;
+
+			//subtract from total ammo
+			TotalAmmo = TotalAmmo - AmmoDiff;
+		}
+		else {
+			//set currrent ammo to whatever is left
+			CurrentAmmo = TotalAmmo;
+
+			//set total ammo to 0
+			TotalAmmo = 0;
+		}
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::ReloadReleased, 2.0f, false);
+	}
+}
+
+//caled when reload is released
+void AMainCharacter::ReloadReleased() {
+	bIsReloading = false;
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Reload Finished"));
+	}
 }
 
 //called when Health is less than or equal to 0
@@ -422,28 +489,36 @@ void AMainCharacter::RayCast(){
 
 //called when pickup is pressed, picks up item
 void AMainCharacter::PickupItem(){
-    if (LastSeenItem){
-        //find first available slot
-        int32 AvailableSlot = Inventory.Find(nullptr);
+	if (LastSeenItem) {
+		//find first available slot
+		int32 AvailableSlot = Inventory.Find(nullptr);
 
-        if (AvailableSlot != INDEX_NONE){
-            //add item to first valid slot
-            Inventory[AvailableSlot] = LastSeenItem;
+		//check is item has image, if not dont add and activate use, if it does add to inventory
+		if (!LastSeenItem->PickupImage) {
+			LastSeenItem->UseItem();
 
-            //destroy item from game
+			//destroy item from game
+			LastSeenItem->Destroy();
+		}
+		else if (AvailableSlot != INDEX_NONE) {
+			//add item to first valid slot
+			Inventory[AvailableSlot] = LastSeenItem;
+
+			//disable item from game
+			LastSeenItem->PickupMesh->SetEnableGravity(false);
 			LastSeenItem->SetActorEnableCollision(false);
 			LastSeenItem->PickupMesh->SetVisibility(false);
 
 			if (bIsInventoryOpen) {
 				InventoryRef->Show();
 			}
-        }
-        else{
-            if (GEngine){
-                GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Inventory full"));
-            }
-        }
-    }
+		}
+		else {
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Inventory full"));
+			}
+		}
+	}
 }
 
 //called when inventory is pressed
@@ -482,26 +557,39 @@ void AMainCharacter::DropEquippedItem(){
     if (CurrentlyEquippedItem){
         int32 IndexOfItem;
         if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)){
-            //the location of drop
-            FVector DropLocation = GetActorLocation() + (GetActorForwardVector() *200);
+			//raycast to determine where to place item
+			FVector StartLocation = CameraComp->GetComponentLocation();
 
-            //making a transform with default rotation and scale just setting up the location that was calculated above
-            FTransform Transform;
-            Transform.SetLocation(DropLocation);
+			FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * 500);
 
-            //default actor spawn parameters
-            FActorSpawnParameters SpawnParams;
+			FHitResult DropItem;
 
-            //spawning our pickup
-            APickupItem* PickupToSpawn = GetWorld()->SpawnActor<APickupItem>(CurrentlyEquippedItem->GetClass(), Transform, SpawnParams);
+			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 0.5f, (uint8)'\000', 1.0f);
+			GetWorld()->LineTraceSingleByChannel(DropItem, StartLocation, EndLocation, ECC_Visibility);
 
-			//delete old actor
-			CurrentlyEquippedItem->Destroy();
+			//the location of drop
+			FVector DropLocation = DropItem.Location + FVector(0.0f, 0.0f, 10.0f);
 
-            if (PickupToSpawn){
-                //unreference item just placed
-                Inventory[IndexOfItem] = nullptr;
-            }
+			//FVector DropLocation = GetActorLocation() + (GetActorForwardVector() *200);
+
+			//enabling pickup
+			CurrentlyEquippedItem->PickupMesh->SetEnableGravity(true);
+
+			CurrentlyEquippedItem->SetActorEnableCollision(true);
+
+			//check if hit was successful, if so place item at hit location if not place item in front of player view a fixed distance
+			if (DropItem.bBlockingHit) {
+				CurrentlyEquippedItem->SetActorLocation(DropLocation);
+			}
+			else {
+				CurrentlyEquippedItem->SetActorLocation(EndLocation);
+			}
+
+			CurrentlyEquippedItem->PickupMesh->SetVisibility(true);
+
+
+			//unreference item just placed
+			Inventory[IndexOfItem] = nullptr;
         }
     }
 }
@@ -516,6 +604,60 @@ void AMainCharacter::ItemUsed() {
 
 			//unreference item just used
 			Inventory[IndexOfItem] = nullptr;
+		}
+	}
+}
+
+//called when switching weapons
+void AMainCharacter::SwitchGun(EGunType NewGun) {
+	//check what kind of kind is currently equipped and store its ammo values
+	switch (CurrentGunType) {
+		case EGunType::GT_MG45:
+			CurrentAmmo_MG45 = CurrentAmmo;
+
+			TotalAmmo_MG45 = TotalAmmo;
+
+			break;
+		default :
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid current gun"));
+			}
+	}
+
+	//check what kind of gun is getting equipped and store its ammo values
+	switch (NewGun) {
+		case EGunType::GT_MG45:
+			CurrentAmmo = CurrentAmmo_MG45;
+
+			TotalAmmo = TotalAmmo_MG45;
+
+			break;
+		default:
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid new gun"));
+			}
+	}
+	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Gun Switched"));
+}
+
+void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
+	if (GunType == CurrentGunType) {
+		while (AmmoToAdd > 0) {
+			if (CurrentAmmo == MaxAmmo) {
+				TotalAmmo++;
+				AmmoToAdd--;
+			}
+			else {
+				CurrentAmmo++;
+				AmmoToAdd--;
+			}
+		}
+	}
+	else {
+		switch (GunType) {
+		case EGunType::GT_MG45:
+			TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
+			break;
 		}
 	}
 }
@@ -542,7 +684,7 @@ float AMainCharacter::GetCurrentAmmo(){
 
 //called manually, returns value of TotalAmmo
 float AMainCharacter::GetTotalAmmo(){
-    return MaxAmmo;
+    return TotalAmmo;
 }
 
 //called manually, returns value of Health
@@ -615,6 +757,22 @@ USkeletalMeshComponent* AMainCharacter::GetGunComp() {
 
 bool AMainCharacter::GetIsCrouching() {
 	return bIsCrouching;
+}
+
+bool AMainCharacter::GetIsReloading() {
+	return bIsReloading;
+}
+
+EGunType AMainCharacter::GetCurrentGunType() {
+	return CurrentGunType;
+}
+
+bool AMainCharacter::GetIsFiring() {
+	return bIsFiring;
+}
+
+TArray<APickupItem*> AMainCharacter::GetInventory() {
+	return Inventory;
 }
 
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {

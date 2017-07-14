@@ -228,7 +228,7 @@ void AMainCharacter::WalkReleased(){
 
 //called when sprint key is pressed, sets walk speed to 1000 and prints "Sprinting"
 void AMainCharacter::SprintPressed(){
-	if (!bIsCrouching && !bIsReloading) {
+	if (!bIsCrouching && !bIsReloading && !bIsAimingDownSights) {
 		//checks if stamina is high enough
 		if (Stamina >= .01) {
 			//sets speed to 1000
@@ -250,7 +250,7 @@ void AMainCharacter::SprintPressed(){
 
 //called when sprint key is released, sets walk speed to 600 and prints "Running"
 void AMainCharacter::SprintReleased(){
-	if (!bIsCrouching) {
+	if (!bIsCrouching && !bIsAimingDownSights) {
 		//sets walk speed
 		GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
@@ -295,7 +295,7 @@ void AMainCharacter::CrouchReleased() {
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-		if (!bIsInventoryOpen && !bIsReloading) {
+		if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None) {
 			//slow character
 			WalkPressed();
 
@@ -317,7 +317,7 @@ void AMainCharacter::AimPressed(){
 
 //called when aim is released, restores speed and zooms out
 void AMainCharacter::AimReleased(){
-	if (!bIsInventoryOpen && !bIsReloading) {
+	if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None) {
 		//restore speed
 		WalkReleased();
 
@@ -340,7 +340,7 @@ void AMainCharacter::AimReleased(){
 //called when fire is pressed
 void AMainCharacter::FirePressed() {
 	//set bIsFiring to true 
-	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0) {
+	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0 && CurrentGunType != EGunType::GT_None) {
 		bIsFiring = true;
 		Fire();
 
@@ -361,7 +361,7 @@ void AMainCharacter::FirePressed() {
 
 //called when fire is released
 void AMainCharacter::FireReleased() {
-	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0) {
+	if (!bIsReloading && !bIsSprinting && CurrentGunType != EGunType::GT_None) {
 		if (bIsAutomaticWeapon) {
 			bIsFiring = false;
 		}
@@ -386,7 +386,7 @@ void AMainCharacter::FireSingleReleased() {
 //fires weapon
 void AMainCharacter::Fire() {
 	//checks if there is enough ammo
-	if (bIsFiring) {
+	if (bIsFiring && CurrentAmmo > 0 && !bIsSprinting) {
 		//reduce current ammo
 		CurrentAmmo--;
 
@@ -422,26 +422,9 @@ void AMainCharacter::Fire() {
 
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
-	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling()) {
+	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None) {
 		bIsReloading = true;
-		//check if there is enough ammo to reload
-		if (TotalAmmo >= MaxAmmo) {
-			//decide how much ammo to add to current ammo
-			float AmmoDiff = MaxAmmo - CurrentAmmo;
 
-			//set clip full
-			CurrentAmmo = CurrentAmmo + AmmoDiff;
-
-			//subtract from total ammo
-			TotalAmmo = TotalAmmo - AmmoDiff;
-		}
-		else {
-			//set currrent ammo to whatever is left
-			CurrentAmmo = TotalAmmo;
-
-			//set total ammo to 0
-			TotalAmmo = 0;
-		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::ReloadReleased, 2.0f, false);
 	}
 }
@@ -449,6 +432,25 @@ void AMainCharacter::ReloadPressed() {
 //caled when reload is released
 void AMainCharacter::ReloadReleased() {
 	bIsReloading = false;
+
+	//check if there is enough ammo to reload
+	if (TotalAmmo >= MaxAmmo) {
+		//decide how much ammo to add to current ammo
+		float AmmoDiff = MaxAmmo - CurrentAmmo;
+
+		//set clip full
+		CurrentAmmo = CurrentAmmo + AmmoDiff;
+
+		//subtract from total ammo
+		TotalAmmo = TotalAmmo - AmmoDiff;
+	}
+	else {
+		//set currrent ammo to whatever is left
+		CurrentAmmo = TotalAmmo;
+
+		//set total ammo to 0
+		TotalAmmo = 0;
+	}
 
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Reload Finished"));
@@ -629,15 +631,18 @@ void AMainCharacter::ItemUsed() {
 }
 
 //called when switching weapons
-void AMainCharacter::SwitchGun(EGunType NewGun) {
-	//check what kind of kind is currently equipped and store its ammo values
+void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamagePerRound, float NewRateOfFire, bool NewbIsAutomatic, USkeletalMesh* NewGunSKMesh, FVector NewGunLocation, FRotator NewGunRotation, FVector NewGunScale){
 	switch (CurrentGunType) {
+		case EGunType::GT_None:
+			break;
+
 		case EGunType::GT_MG45:
 			CurrentAmmo_MG45 = CurrentAmmo;
 
 			TotalAmmo_MG45 = TotalAmmo;
 
 			break;
+
 		default :
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid current gun"));
@@ -646,39 +651,52 @@ void AMainCharacter::SwitchGun(EGunType NewGun) {
 
 	//check what kind of gun is getting equipped and store its ammo values
 	switch (NewGun) {
+		case EGunType::GT_None:
+		break;
+
 		case EGunType::GT_MG45:
 			CurrentAmmo = CurrentAmmo_MG45;
 
 			TotalAmmo = TotalAmmo_MG45;
 
 			break;
+
 		default:
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid new gun"));
 			}
 	}
-	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Gun Switched"));
+
+	//change variables based on new variables
+	MaxAmmo = NewMaxAmmo;
+	DamagePerRound = NewDamagePerRound;
+	RateOfFire = NewRateOfFire;
+	bIsAutomaticWeapon = NewbIsAutomatic;
+	
+	//change gun mesh
+	GunComp->SetSkeletalMesh(NewGunSKMesh);
+
+	//set location, rotation, and scale
+	GunComp->SetRelativeLocationAndRotation(NewGunLocation, NewGunRotation);
+	GunComp->SetRelativeScale3D(NewGunScale);
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Gun Switched"));
+	}
 }
 
 void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
 	if (GunType == CurrentGunType) {
-		while (AmmoToAdd > 0) {
-			if (CurrentAmmo == MaxAmmo) {
-				TotalAmmo++;
-				AmmoToAdd--;
-			}
-			else {
-				CurrentAmmo++;
-				AmmoToAdd--;
-			}
-		}
+		TotalAmmo = TotalAmmo + AmmoToAdd;
 	}
-	else {
-		switch (GunType) {
-		case EGunType::GT_MG45:
-			TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
-			break;
-		}
+	switch (GunType) {
+	case EGunType::GT_None:
+		break;
+
+	case EGunType::GT_MG45:
+		TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
+
+		break;
 	}
 }
 

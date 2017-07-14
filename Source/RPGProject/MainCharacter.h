@@ -13,6 +13,7 @@
 UENUM(BlueprintType)
 enum class EGunType : uint8
 {
+	GT_None UMETA(DisplayName = "None"),
 	GT_MG45	UMETA(DisplayName = "MG-45"),
 };
 
@@ -186,15 +187,15 @@ private:
 
     //variable storing current ammo amount
     UPROPERTY()
-    float CurrentAmmo = 30;
+    float CurrentAmmo = 0;
 
 	//variable storing max ammo in clip
 	UPROPERTY()
-	float MaxAmmo = 30;
+	float MaxAmmo = 0;
 
     //variable storing total ammo
     UPROPERTY()
-    float TotalAmmo = 100;
+    float TotalAmmo = 0;
 
 	UPROPERTY()
 	float DamagePerRound;
@@ -206,7 +207,7 @@ private:
 	bool bIsAutomaticWeapon = false;
 
 	UPROPERTY()
-	EGunType CurrentGunType;
+	EGunType CurrentGunType = EGunType::GT_None;
 
     // Called every frame
     virtual void Tick(float DeltaTime) override;
@@ -336,5 +337,5 @@ public:
 	void ItemUsed();
 
 	UFUNCTION(BlueprintCallable)
-		void SwitchGun(EGunType NewGun);
+		void SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamagePerRound, float NewRateOfFire, bool NewbIsAutomatic, USkeletalMesh* NewGunSKMesh, FVector NewGunLocation, FRotator NewGunRotation, FVector NewGunScale);
 };

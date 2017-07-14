@@ -57,6 +57,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Weapon)
 	USkeletalMesh* GunMesh;
 
+	UPROPERTY(EditDefaultsOnly)
+		UAnimMontage* FireAnimMontage;
+
     //functions for movement inputs
     UFUNCTION()
     void MoveForward(float Value);
@@ -94,6 +97,9 @@ private:
 
 	UFUNCTION()
 		void FireReleased();
+
+	UFUNCTION()
+		void FireSingleReleased();
 
     UFUNCTION()
     void Fire();

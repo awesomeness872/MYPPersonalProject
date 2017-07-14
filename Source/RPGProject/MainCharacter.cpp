@@ -130,7 +130,7 @@ void AMainCharacter::MoveForward(float Value)
 	if (bIsSprinting && Value <= 0) {
 		
 	}
-	else if ((Controller != NULL) && (Value != 0.0f) && (!bIsReloading)) {
+	else if ((Controller != NULL) && (Value != 0.0f)) {
 		bIsMoving = true;
 		// find out which way is forward
 		FRotator Rotation = Controller->GetControlRotation();
@@ -151,7 +151,7 @@ void AMainCharacter::MoveForward(float Value)
 //called when A or D is pressed, adds directional input
 void AMainCharacter::MoveRight(float Value)
 {
-    if (!bIsSprinting && !bIsReloading){
+    if (!bIsSprinting){
         if ( (Controller != NULL) && (Value != 0.0f))
         {
             bIsMoving = true;
@@ -169,7 +169,7 @@ void AMainCharacter::MoveRight(float Value)
 
 //called when jump is pressed, starts player jump and sets jumping to true
 void AMainCharacter::JumpPressed(){
-	if (!bIsCrouching && !bIsAimingDownSights && !bIsReloading){
+	if (!bIsCrouching && !bIsAimingDownSights){
 		if (Stamina >= .1) {
 			//jump
 			bPressedJump = true;
@@ -193,7 +193,7 @@ void AMainCharacter::JumpReleased(){
 
 //called when walk key is pressed, sets walk speed to 100 and prints "Walking"
 void AMainCharacter::WalkPressed(){
-	if (!bIsCrouching && !bIsReloading) {
+	if (!bIsCrouching) {
 		//sets speed to 265
 		GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
@@ -266,20 +266,18 @@ void AMainCharacter::SprintReleased(){
 
 //called when crouch key is pressed, sets walk speed to 265 and changes value of bIsCrouched
 void AMainCharacter::CrouchPressed() {
-	if (!bIsReloading) {
-		//set walk speed
-		GetCharacterMovement()->MaxWalkSpeed = 265.0f;
+	//set walk speed
+	GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
-		//set value of bIsCrouching
-		bIsCrouching = true;
+	//set value of bIsCrouching
+	bIsCrouching = true;
 
-		//lowers camera
-		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+	//lowers camera
+	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
 
-		//prints "Crouching"
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Crouching"));
-		}
+	//prints "Crouching"
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Crouching"));
 	}
 }
 
@@ -319,54 +317,76 @@ void AMainCharacter::AimPressed(){
 
 //called when aim is released, restores speed and zooms out
 void AMainCharacter::AimReleased(){
-    //restore speed
-    WalkReleased();
+	if (!bIsInventoryOpen && !bIsReloading) {
+		//restore speed
+		WalkReleased();
 
-	if (bIsCrouching) {
-		//zoom out
-		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
-	}
-	else {
-		//zoom out
-		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
-	}
+		if (bIsCrouching) {
+			//zoom out
+			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+		}
+		else {
+			//zoom out
+			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+		}
 
-    //prints "Gun fired" if GEngine is being used
-    if (GEngine){
-        GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Aim released"));
-    }
+		//prints "Gun fired" if GEngine is being used
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Aim released"));
+		}
+	}
 }
 
 //called when fire is pressed
 void AMainCharacter::FirePressed() {
 	//set bIsFiring to true 
-	bIsFiring = true;
-	Fire();
+	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0) {
+		bIsFiring = true;
+		Fire();
 
-	if (bIsAutomaticWeapon) {
-		GetWorldTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::Fire, RateOfFire, true);
-	}
+		if (bIsAutomaticWeapon) {
+			GetWorldTimerManager().SetTimer(FireTimer, this, &AMainCharacter::Fire, RateOfFire, true);
+		}
 
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Pressed"));
+		else {
+			PlayAnimMontage(FireAnimMontage);
+			GetWorldTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::FireSingleReleased, 0.233f, false);
+		}
+
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Pressed"));
+		}
 	}
 }
 
 //called when fire is released
 void AMainCharacter::FireReleased() {
-	bIsFiring = false;
+	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0) {
+		if (bIsAutomaticWeapon) {
+			bIsFiring = false;
+		}
 
+		GetWorldTimerManager().ClearTimer(FireTimer);
+
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Released"));
+		}
+	}
+}
+
+//called when firing a single shot is done
+void AMainCharacter::FireSingleReleased() {
+	bIsFiring = false;
+	
 	GetWorldTimerManager().ClearTimer(ReloadTimer);
 
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Yellow, TEXT("Fire Released"));
-	}
+	FireReleased();
 }
 
 //fires weapon
 void AMainCharacter::Fire() {
 	//checks if there is enough ammo
-	if (CurrentAmmo > 0 && !bIsReloading && bIsFiring) {
+	if (bIsFiring) {
 		//reduce current ammo
 		CurrentAmmo--;
 
@@ -402,7 +422,7 @@ void AMainCharacter::Fire() {
 
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
-	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && GetVelocity() == FVector(0.0f, 0.0f, 0.0f)) {
+	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling()) {
 		bIsReloading = true;
 		//check if there is enough ammo to reload
 		if (TotalAmmo >= MaxAmmo) {

@@ -6,6 +6,7 @@
 #include "PickupItem.h"
 #include "MC_PlayerController.h"
 #include "InventoryWidget.h"
+#include "EnemyCharacter.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
@@ -207,7 +208,7 @@ private:
 	bool bIsAutomaticWeapon = false;
 
 	UPROPERTY()
-	EGunType CurrentGunType = EGunType::GT_None;
+	EGunType CurrentGunType;
 
     // Called every frame
     virtual void Tick(float DeltaTime) override;

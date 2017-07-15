@@ -41,8 +41,8 @@ void AMainCharacter::BeginPlay()
 	//set GunComp to socket
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 
-	//set gun type fo MG-45, temporary
-	CurrentGunType = EGunType::GT_MG45;
+	//set gun type to none
+	CurrentGunType = EGunType::GT_None;
 }
 
 // Called every frame
@@ -408,6 +408,9 @@ void AMainCharacter::Fire() {
 		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.5F, (uint8)'\000', 1.0F);
 
 		if (RaycastHit.GetActor() != nullptr) {
+			AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(RaycastHit.GetActor());
+			Enemy->Damage(DamagePerRound);
+
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Object Hit"));
 			}
@@ -652,14 +655,20 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 	//check what kind of gun is getting equipped and store its ammo values
 	switch (NewGun) {
 		case EGunType::GT_None:
-		break;
+			CurrentAmmo = 0;
+
+			TotalAmmo = 0;
+
+			CurrentGunType = EGunType::GT_None;
+			break;
 
 		case EGunType::GT_MG45:
 			CurrentAmmo = CurrentAmmo_MG45;
 
 			TotalAmmo = TotalAmmo_MG45;
 
-			break;
+			CurrentGunType = EGunType::GT_MG45;
+			break; 
 
 		default:
 			if (GEngine) {
@@ -688,13 +697,17 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
 	if (GunType == CurrentGunType) {
 		TotalAmmo = TotalAmmo + AmmoToAdd;
+		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Match"));
 	}
 	switch (GunType) {
 	case EGunType::GT_None:
+		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("None"));
 		break;
 
 	case EGunType::GT_MG45:
 		TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
+
+		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("MG-45"));
 
 		break;
 	}

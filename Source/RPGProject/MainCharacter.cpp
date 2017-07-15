@@ -21,6 +21,9 @@ AMainCharacter::AMainCharacter()
 
 	//initialize GunComp
 	GunComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun Component"));
+
+	//setup collision type
+	GetMesh()->SetCollisionProfileName(TEXT("Player"));
 }
 
 // Called when the game starts or when spawned
@@ -425,7 +428,7 @@ void AMainCharacter::Fire() {
 
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
-	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None) {
+	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None, TotalAmmo > 0) {
 		bIsReloading = true;
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::ReloadReleased, 2.0f, false);
@@ -697,17 +700,13 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
 	if (GunType == CurrentGunType) {
 		TotalAmmo = TotalAmmo + AmmoToAdd;
-		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Match"));
 	}
 	switch (GunType) {
 	case EGunType::GT_None:
-		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("None"));
 		break;
 
 	case EGunType::GT_MG45:
 		TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
-
-		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("MG-45"));
 
 		break;
 	}

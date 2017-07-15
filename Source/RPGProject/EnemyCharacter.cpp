@@ -19,6 +19,9 @@ AEnemyCharacter::AEnemyCharacter()
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//set GunComp to socket
+	//GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 }
 
 // Called every frame
@@ -30,9 +33,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
 	if (Health <= 0 && !bIsDeadCalled) {
 		//calls dead function
 		Dead();
-	}
-	//see if player is in view
-	CastForPlayer();
 }
 
 // Called to bind functionality to input
@@ -66,7 +66,7 @@ void AEnemyCharacter::Dead() {
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
 
-	//changes value of bDeadCalled
+	//change value of bDeadCalled
 	bIsDeadCalled = true;
 }
 
@@ -74,6 +74,10 @@ void AEnemyCharacter::Damage(float Damage) {
 	Health = Health - Damage;
 }
 
-void AEnemyCharacter::CastForPlayer() {
+FVector AEnemyCharacter::GetPlayerLocation() {
+	return PlayerLocation;
+}
 
+bool AEnemyCharacter::GetHasFoundPlayer() {
+	return bHasFoundPlayer;
 }

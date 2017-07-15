@@ -36,9 +36,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void Damage(float Damage);
 
+	UFUNCTION(BlueprintCallable)
+		FVector GetPlayerLocation();
+
+	UFUNCTION(BlueprintCallable)
+		bool GetHasFoundPlayer();
+
 private:
 	UPROPERTY(EditAnywhere)
 		USkeletalMeshComponent* GunComp;
+
+	UPROPERTY(EditAnywhere)
+		UBehaviorTree* ChaseTree;
 
 	UPROPERTY()
 		float Health = 1;
@@ -53,7 +62,16 @@ private:
 		float ShootRaycastRange = -10000.f;
 
 	UPROPERTY()
+		float PlayerRaycastRange = 100.0f;
+
+	UPROPERTY()
 		bool bIsDeadCalled;
+
+	UPROPERTY()
+		bool bHasFoundPlayer;
+
+	UPROPERTY()
+		FVector PlayerLocation;
 
 	UFUNCTION()
 		void CastForPlayer();

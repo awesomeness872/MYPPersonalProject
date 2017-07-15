@@ -74,6 +74,6 @@ void AEnemyCharacter::Damage(float Damage) {
 	Health = Health - Damage;
 }
 
-void AEnemyCharacter::CastForPlyaer() {
+void AEnemyCharacter::CastForPlayer() {
 
 }

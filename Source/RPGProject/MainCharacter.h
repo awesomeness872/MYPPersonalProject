@@ -39,6 +39,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
     //The range of the raycast for items
     UPROPERTY(EditAnywhere)
     float ItemRaycastRange = 500.f;
@@ -209,12 +215,6 @@ private:
 
 	UPROPERTY()
 	EGunType CurrentGunType;
-
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
-
-    // Called to bind functionality to input
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY()
 	UInventoryWidget* InventoryRef;

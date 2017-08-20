@@ -72,7 +72,4 @@ private:
 
 	UPROPERTY()
 		FVector PlayerLocation;
-
-	UFUNCTION()
-		void CastForPlayer();
 };

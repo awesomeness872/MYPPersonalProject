@@ -33,6 +33,7 @@ void AEnemyCharacter::Tick(float DeltaTime)
 	if (Health <= 0 && !bIsDeadCalled) {
 		//calls dead function
 		Dead();
+	}
 }
 
 // Called to bind functionality to input

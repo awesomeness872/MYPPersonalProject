@@ -7,6 +7,7 @@
 #include "MC_PlayerController.h"
 #include "InventoryWidget.h"
 #include "EnemyCharacter.h"
+#include "InteractableItem.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
@@ -148,7 +149,12 @@ private:
     TArray<APickupItem*> Inventory;
 
     //reference to currently held item
-    APickupItem* CurrentlyEquippedItem;
+	UPROPERTY()
+		APickupItem* CurrentlyEquippedItem;
+
+	//reference to interactable item being looked at
+	UPROPERTY()
+		AInteractableItem* CurrentInteraction;
 
     //variable telling if player is moving
     UPROPERTY()
@@ -183,6 +189,9 @@ private:
 
 	UPROPERTY()
 		bool bIsFiring;
+
+	UPROPERTY()
+		bool bIsLookingAtInteractable = false;
 
     //variable storing health
     UPROPERTY()
@@ -267,6 +276,9 @@ public:
     UFUNCTION(BlueprintCallable)
     float GetTotalAmmo();
 
+	UFUNCTION(BlueprintCallable)
+		FName GetInteractionAction();
+
     UFUNCTION(BlueprintCallable)
     FName GetLSIName();
 
@@ -278,6 +290,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	APickupItem* GetLSI();
+
+	UFUNCTION(BlueprintCallable)
+		AInteractableItem* GetCurrentInteraction();
 
 	UFUNCTION(BlueprintCallable)
 	bool GetIsInventoryOpen();
@@ -296,6 +311,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		bool GetIsFiring();
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsLookingAtInteractable();
 
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)

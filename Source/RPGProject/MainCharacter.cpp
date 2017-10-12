@@ -481,8 +481,55 @@ void AMainCharacter::Dead(){
     bDeadCalled = true;
 }
 
+
 //raycast to find usable item
-void AMainCharacter::RayCast(){
+void AMainCharacter::RayCast() {
+	//calulate start and end location
+	FVector StartLocation = CameraComp->GetComponentLocation();
+	FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * ItemRaycastRange);
+
+	FHitResult RaycastHit;
+
+	//raycast should ignore character
+	FCollisionQueryParams CQP;
+	CQP.AddIgnoredActor(this);
+
+	//raycast
+	GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldDynamic, CQP);
+
+	APickupItem* Pickup = Cast<APickupItem>(RaycastHit.GetActor());
+	AInteractableItem* Interactable = Cast<AInteractableItem>(RaycastHit.GetActor());
+
+	if (LastSeenItem && LastSeenItem != Pickup) {
+		//if character sees a different pickup disable glowing effect on last character
+		LastSeenItem->SetGlowEffect(false);
+		bIsLookingAtPickup = false;
+	}
+
+	if (Pickup) {
+		//enable glowing effect on current item
+		LastSeenItem = Pickup;
+		Pickup->SetGlowEffect(true);
+		bIsLookingAtPickup = true;
+	}
+
+	//reinitalize
+	else LastSeenItem = nullptr;
+
+	if (CurrentInteraction && CurrentInteraction != Interactable) {
+		bIsLookingAtInteractable = false;
+
+	}
+
+	if (Interactable) {
+		CurrentInteraction = Interactable;
+		bIsLookingAtInteractable = true;
+	}
+
+	else CurrentInteraction = nullptr;
+}
+//raycast to find usable item
+/*void AMainCharacter::RayCast(){
     //calulate start and end location
     FVector StartLocation = CameraComp->GetComponentLocation();
     FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * ItemRaycastRange);
@@ -497,23 +544,40 @@ void AMainCharacter::RayCast(){
     GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldDynamic, CQP);
 
     APickupItem* Pickup = Cast<APickupItem>(RaycastHit.GetActor());
+	//AInteractableItem* Interactable = Cast<AInteractableItem>(RaycastHit.GetActor());
 
     if (LastSeenItem && LastSeenItem != Pickup){
-        //if character sees a different pickup disable glowing effect on last character
-        LastSeenItem->SetGlowEffect(false);
         bIsLookingAtPickup = false;
     }
 
     if (Pickup){
-        //enable glowing effect on current item
         LastSeenItem = Pickup;
-        Pickup->SetGlowEffect(true);
+
         bIsLookingAtPickup = true;
     }
 
-    //reinitalize
-    else LastSeenItem = nullptr;
-}
+	if (CurrentInteraction && CurrentInteraction != Interactable) {
+		bIsLookingAtInteractable = false;
+
+	}
+
+	if (Interactable) {
+		CurrentInteraction = Interactable;
+
+		bIsLookingAtInteractable = true;
+
+		if (CurrentInteraction) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Item Selected"));
+		}
+	} 
+
+	//reinitalize
+	if (!Pickup || !Interactable ||!LastSeenItem || !CurrentInteraction) {
+		LastSeenItem = nullptr;
+		CurrentInteraction = nullptr;
+	}
+}*/
+
 
 //called when pickup is pressed, picks up item
 void AMainCharacter::PickupItem(){
@@ -545,6 +609,15 @@ void AMainCharacter::PickupItem(){
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Inventory full"));
 			}
+		}
+	}
+
+	if (CurrentInteraction) {
+		//activates logic in InteractableItem
+		CurrentInteraction->Activate();
+	
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Item activated"));
 		}
 	}
 }
@@ -752,6 +825,16 @@ bool AMainCharacter::GetIsLookingAtPickup(){
     return bIsLookingAtPickup;
 }
 
+FName AMainCharacter::GetInteractionAction() {
+	if (CurrentInteraction) {
+		return CurrentInteraction->GetActionText();
+	}
+	else {
+		FName none;
+		return none;
+	}
+}
+
 //called manually, if LastSeenItem is valid returns value of LastSeenIten->PickupName, if not returns empty
 FName AMainCharacter::GetLSIName(){
     if (LastSeenItem){
@@ -793,6 +876,14 @@ APickupItem* AMainCharacter::GetLSI() {
 	}
 }
 
+AInteractableItem* AMainCharacter::GetCurrentInteraction() {
+	if (CurrentInteraction) {
+		return CurrentInteraction;
+	}
+
+	else return nullptr;
+}
+
 bool AMainCharacter::GetIsInventoryOpen() {
 	return bIsInventoryOpen;
 }
@@ -819,6 +910,10 @@ EGunType AMainCharacter::GetCurrentGunType() {
 
 bool AMainCharacter::GetIsFiring() {
 	return bIsFiring;
+}
+
+bool AMainCharacter::GetIsLookingAtInteractable() {
+	return bIsLookingAtInteractable;
 }
 
 TArray<APickupItem*> AMainCharacter::GetInventory() {

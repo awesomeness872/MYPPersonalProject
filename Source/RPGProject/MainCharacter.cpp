@@ -121,10 +121,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AMainCharacter::PickupItem);
     PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &AMainCharacter::DropEquippedItem);
     PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &AMainCharacter::HandleInventoryInput);
-    //dev mode inputs
-    PlayerInputComponent->BindKey("NumPadOne", IE_Pressed, this, &AMainCharacter::Num1);
-    PlayerInputComponent->BindKey("NumPadTwo", IE_Pressed, this, &AMainCharacter::Num2);
-    PlayerInputComponent->BindKey("NumPadThree", IE_Pressed, this, &AMainCharacter::Num3);
+	//input for pause menu
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainCharacter::PauseMenu);
 }
 
 //called when W or S is pressed, adds directional input
@@ -528,56 +526,6 @@ void AMainCharacter::RayCast() {
 
 	else CurrentInteraction = nullptr;
 }
-//raycast to find usable item
-/*void AMainCharacter::RayCast(){
-    //calulate start and end location
-    FVector StartLocation = CameraComp->GetComponentLocation();
-    FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * ItemRaycastRange);
-
-    FHitResult RaycastHit;
-
-    //raycast should ignore character
-    FCollisionQueryParams CQP;
-    CQP.AddIgnoredActor(this);
-
-    //raycast
-    GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldDynamic, CQP);
-
-    APickupItem* Pickup = Cast<APickupItem>(RaycastHit.GetActor());
-	//AInteractableItem* Interactable = Cast<AInteractableItem>(RaycastHit.GetActor());
-
-    if (LastSeenItem && LastSeenItem != Pickup){
-        bIsLookingAtPickup = false;
-    }
-
-    if (Pickup){
-        LastSeenItem = Pickup;
-
-        bIsLookingAtPickup = true;
-    }
-
-	if (CurrentInteraction && CurrentInteraction != Interactable) {
-		bIsLookingAtInteractable = false;
-
-	}
-
-	if (Interactable) {
-		CurrentInteraction = Interactable;
-
-		bIsLookingAtInteractable = true;
-
-		if (CurrentInteraction) {
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Item Selected"));
-		}
-	} 
-
-	//reinitalize
-	if (!Pickup || !Interactable ||!LastSeenItem || !CurrentInteraction) {
-		LastSeenItem = nullptr;
-		CurrentInteraction = nullptr;
-	}
-}*/
-
 
 //called when pickup is pressed, picks up item
 void AMainCharacter::PickupItem(){
@@ -622,6 +570,13 @@ void AMainCharacter::PickupItem(){
 	}
 }
 
+//called when pause button is pressed
+void AMainCharacter::PauseMenu() {
+	//set refrenece to PC
+	AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+	//open pause menu
+	if (Con) Con->PauseGame();
+}
 //called when inventory is pressed
 void AMainCharacter::HandleInventoryInput(){
     if (bIsInventoryOpen){

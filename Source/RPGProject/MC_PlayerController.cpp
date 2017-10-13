@@ -19,6 +19,7 @@ void AMC_PlayerController::BeginPlay(){
             UMG_HUD->AddToViewport();
         }
     }
+
 }
 
 void AMC_PlayerController::Possess(APawn *InPawn){
@@ -69,4 +70,24 @@ void AMC_PlayerController::HandleInventoryInput(){
             SetInputMode(InputMode);
         }
     }
+}
+
+void AMC_PlayerController::PauseGame() {
+	//check if asset is assigned in blueprint
+	if (wUMG_PauseMenu) {
+		//create widget and store it
+		UMG_PauseMenu = CreateWidget<UUserWidget>(this, wUMG_PauseMenu);
+		//make sure pointer holds widget
+		if (UMG_PauseMenu) {
+			//add to viewport
+			UMG_PauseMenu->AddToViewport();
+			//show cursor
+			bShowMouseCursor = true;
+			//tell game that we want register inputs in UI
+			FInputModeUIOnly InputMode;
+			SetInputMode(InputMode);
+			//pause game
+			SetPause(true);
+		}
+	}
 }

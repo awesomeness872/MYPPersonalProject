@@ -133,13 +133,12 @@ private:
     UFUNCTION()
     void RayCast();
 
-    //reference to last seen pickup, nullptr if none
-    UPROPERTY()
-    APickupItem* LastSeenItem;
-
     //Handles the Pickup Input
     UFUNCTION()
     void PickupItem();
+
+	UFUNCTION()
+		void PauseMenu();
 
     UPROPERTY()
     bool bIsInventoryOpen = false;
@@ -155,6 +154,10 @@ private:
 	//reference to interactable item being looked at
 	UPROPERTY()
 		AInteractableItem* CurrentInteraction;
+
+	//reference to last seen pickup, nullptr if none
+	UPROPERTY()
+		APickupItem* LastSeenItem;
 
     //variable telling if player is moving
     UPROPERTY()

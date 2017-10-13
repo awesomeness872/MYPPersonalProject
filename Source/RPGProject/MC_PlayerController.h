@@ -35,6 +35,12 @@ public:
     UPROPERTY()
     UUserWidget* UMG_HUD;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<class UUserWidget> wUMG_PauseMenu;
+
+	UPROPERTY()
+		UUserWidget* UMG_PauseMenu;
+
     //opens or closes the inventory
     void HandleInventoryInput();
 
@@ -42,6 +48,7 @@ public:
 
     //override BeginPlay()
     virtual void BeginPlay() override;
-	
-	
+
+	UFUNCTION(BlueprintCallable)
+		void PauseGame();
 };

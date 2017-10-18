@@ -13,9 +13,6 @@ AMainCharacter::AMainCharacter()
     //create cameracomp
     CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
 
-    //attach to capsule
-    CameraComp->SetupAttachment(GetCapsuleComponent());
-
     //allow pawn to control rotation
     CameraComp->bUsePawnControlRotation = true;
 
@@ -46,6 +43,9 @@ void AMainCharacter::BeginPlay()
 
 	//set gun type to none
 	CurrentGunType = EGunType::GT_None;
+
+	//set camera and mesh for perspective
+	SetPerspective(GetPerspective());
 }
 
 // Called every frame
@@ -238,9 +238,6 @@ void AMainCharacter::SprintPressed(){
 			//set value of bIsSprinting
 			bIsSprinting = true;
 
-			//zoom out
-			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
-
 			//prints "Sprinting" when GEngine is being used
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Sprinting"));
@@ -274,7 +271,9 @@ void AMainCharacter::CrouchPressed() {
 	bIsCrouching = true;
 
 	//lowers camera
-	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+	if (Perspective == EPerspective::P_3P) {
+		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, -60.0f));
+	}
 
 	//prints "Crouching"
 	if (GEngine) {
@@ -284,11 +283,13 @@ void AMainCharacter::CrouchPressed() {
 
 //called when crouch key is released, sets player to default speed and changes value of bIsCrouched
 void AMainCharacter::CrouchReleased() {
-	//set walking
-	WalkReleased();
+	//sets speed to 595
+	GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
 	//put camera back
-	CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+	if (Perspective == EPerspective::P_3P) {
+		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, 60.0f));
+	}
 
 	//set value of bIsCrouching
 	bIsCrouching = false;
@@ -302,11 +303,11 @@ void AMainCharacter::AimPressed(){
 
 			if (bIsCrouching) {
 				//zoom in
-				CameraComp->SetRelativeLocation(FVector(-100.0f, 70.0f, 30.0f));
+				CameraComp->AddRelativeLocation(FVector(-170.0f, -10.0f, 0.0f));
 			}
 			else {
 				//zoom in
-				CameraComp->SetRelativeLocation(FVector(-80.0f, 70.0f, 90.0f));
+				CameraComp->AddRelativeLocation(FVector(170.0f, 10.0f, 0.0f));
 			}
 
 			//prints "Gun fired" if GEngine is being used
@@ -324,11 +325,11 @@ void AMainCharacter::AimReleased(){
 
 		if (bIsCrouching) {
 			//zoom out
-			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 30.0f));
+			CameraComp->AddRelativeLocation(FVector(170.0f, 10.0f, 0.0f));
 		}
 		else {
 			//zoom out
-			CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+			CameraComp->AddRelativeLocation(FVector(-170.0f, -10.0f, 0.0f));
 		}
 
 		//prints "Gun fired" if GEngine is being used
@@ -875,6 +876,10 @@ TArray<APickupItem*> AMainCharacter::GetInventory() {
 	return Inventory;
 }
 
+EPerspective AMainCharacter::GetPerspective() {
+	return Perspective;
+}
+
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
 	CurrentlyEquippedItem = Item;
 }
@@ -900,20 +905,19 @@ void AMainCharacter::SetIsAutomaticWeapon(bool bIsAutomatic) {
 	bIsAutomaticWeapon = bIsAutomatic;
 }
 
-//called when numpad 1 is pressed
-void AMainCharacter::Num1(){
-    //set current ammo equal to total ammo
-    CurrentAmmo = MaxAmmo;
-}
+void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
+	Perspective = NewPerspective;
 
-//called when numpad 2 is pressed
-void AMainCharacter::Num2(){
-    //refil stamina
-    Stamina = 1;
-}
+	if (NewPerspective == EPerspective::P_1P) {
+		//attach camera to head
+		CameraComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("FirstPersonCamera"));
 
-//called when numpad 3 is pressed
-void AMainCharacter::Num3(){
-    //set health to 0
-    Health = 0;
+	}
+
+	if (NewPerspective == EPerspective::P_3P) {
+		//detach camera from head and set to thirdperson position
+		CameraComp->DetachFromComponent(FDetachmentTransformRules(FDetachmentTransformRules::KeepRelativeTransform));
+		CameraComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
+		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+	}
 }

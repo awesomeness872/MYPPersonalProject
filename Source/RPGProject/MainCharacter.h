@@ -19,6 +19,13 @@ enum class EGunType : uint8
 	GT_MG45	UMETA(DisplayName = "MG-45"),
 };
 
+UENUM(BlueprintType)
+enum class EPerspective : uint8
+{
+	P_1P UMETA(DisplayName = "First Person"),
+	P_3P UMETA(DisplayName = "Third Person"),
+};
+
 UCLASS()
 class RPGPROJECT_API AMainCharacter : public ACharacter
 {
@@ -237,18 +244,8 @@ private:
 	UPROPERTY()
 		FTimerHandle FireTimer;
 
-    //functions for dev mode
-    //function called when numpad 1 is pressed
-    UFUNCTION()
-    void Num1();
-
-    //function called when numpad 2 is pressed
-    UFUNCTION()
-    void Num2();
-
-    //function called when numpad 3 is pressed
-    UFUNCTION()
-    void Num3();
+	UPROPERTY()
+		EPerspective Perspective = EPerspective::P_3P;
 
 public:	 
     UFUNCTION(BlueprintCallable)
@@ -318,6 +315,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		bool GetIsLookingAtInteractable();
 
+	UFUNCTION(BlueprintCallable)
+		EPerspective GetPerspective();
+
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
     void SetEquippedItem(UTexture2D* Texture);
@@ -360,4 +360,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamagePerRound, float NewRateOfFire, bool NewbIsAutomatic, USkeletalMesh* NewGunSKMesh, FVector NewGunLocation, FRotator NewGunRotation, FVector NewGunScale);
+
+	UFUNCTION(BlueprintCallable)
+		void SetPerspective(EPerspective NewPerspective);
 };

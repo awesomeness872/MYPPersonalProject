@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Enemy_AIController.h"
+#include "EGunType.h"
 #include "EnemyCharacter.generated.h"
 
 UCLASS()
@@ -42,6 +43,30 @@ public:
 	UFUNCTION(BlueprintCallable)
 		bool GetHasFoundPlayer();
 
+	//variable storing current ammo amount
+	UPROPERTY(EditDefaultsOnly)
+		float CurrentAmmo = 0;
+
+	//variable storing max ammo in clip
+	UPROPERTY(EditDefaultsOnly)
+		float MaxAmmo = 0;
+
+	//variableEditDefaultsOnly storing total ammo
+	UPROPERTY()
+		float TotalAmmo = 0;
+
+	UPROPERTY(EditDefaultsOnly)
+		float DamagePerRound;
+
+	UPROPERTY(EditDefaultsOnly)
+		float RateOfFire;
+
+	UPROPERTY(EditDefaultsOnly)
+		bool bIsAutomaticWeapon = false;
+
+	UPROPERTY(EditDefaultsOnly)
+		EGunType CurrentGunType;
+
 private:
 	UPROPERTY(EditAnywhere)
 		USkeletalMeshComponent* GunComp;
@@ -51,12 +76,6 @@ private:
 
 	UPROPERTY()
 		float Health = 1;
-
-	UPROPERTY()
-		float DamagePerRound;
-
-	UPROPERTY()
-		float RateOfFire;
 
 	UPROPERTY()
 		float ShootRaycastRange = -10000.f;

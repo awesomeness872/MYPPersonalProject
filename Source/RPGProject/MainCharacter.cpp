@@ -407,7 +407,9 @@ void AMainCharacter::Fire() {
 		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
 
 		//draw line on raycast
-		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.5F, (uint8)'\000', 1.0F);
+		if (GEngine) {
+			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.5F, (uint8)'\000', 1.0F);
+		}
 
 		if (RaycastHit.GetActor() != nullptr) {
 			AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(RaycastHit.GetActor());
@@ -535,7 +537,7 @@ void AMainCharacter::PickupItem(){
 		int32 AvailableSlot = Inventory.Find(nullptr);
 
 		//check is item has image, if not dont add and activate use, if it does add to inventory
-		if (!LastSeenItem->PickupImage) {
+		if (!LastSeenItem->bIsInventoryPickup) {
 			LastSeenItem->UseItem();
 
 			//destroy item from game
@@ -811,6 +813,15 @@ FName AMainCharacter::GetLSIDesc(){
         FName none;
         return none;
     }
+}
+
+bool AMainCharacter::GetLSIbIsInventoryPickup() {
+	if (LastSeenItem) {
+		return LastSeenItem->bIsInventoryPickup;
+	}
+	else {
+		return true;
+	}
 }
 
 //called manually, if LastSeenItem is valid returns value of LastSeenIten->PickupImage, if not returns empty

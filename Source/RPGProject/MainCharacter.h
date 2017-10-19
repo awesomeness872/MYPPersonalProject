@@ -8,16 +8,10 @@
 #include "InventoryWidget.h"
 #include "EnemyCharacter.h"
 #include "InteractableItem.h"
+#include "EGunType.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
-
-UENUM(BlueprintType)
-enum class EGunType : uint8
-{
-	GT_None UMETA(DisplayName = "None"),
-	GT_MG45	UMETA(DisplayName = "MG-45"),
-};
 
 UENUM(BlueprintType)
 enum class EPerspective : uint8
@@ -285,6 +279,9 @@ public:
     UFUNCTION(BlueprintCallable)
     FName GetLSIDesc();
 
+	UFUNCTION(BlueprintCallable)
+		bool GetLSIbIsInventoryPickup();
+
     UFUNCTION(BlueprintCallable)
     UTexture2D* GetLSIImage();
 
@@ -316,7 +313,13 @@ public:
 		bool GetIsLookingAtInteractable();
 
 	UFUNCTION(BlueprintCallable)
+		TArray<APickupItem*> GetInventory();
+
+	UFUNCTION(BlueprintCallable)
 		EPerspective GetPerspective();
+
+	UFUNCTION(BlueprintCallable)
+		EGunType GetCurrentGunType();
 
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
@@ -324,12 +327,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentlyEquippedItem(APickupItem* Item);
-
-	UFUNCTION(BlueprintCallable)
-		TArray<APickupItem*> GetInventory();
-
-	UFUNCTION(BlueprintCallable)
-	EGunType GetCurrentGunType();
 
 	UFUNCTION(BlueprintCallable)
 	void SetMaxAmmo(float NewMaxAmmo);

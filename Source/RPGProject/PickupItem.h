@@ -45,6 +45,10 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     FName ActionText;
 
+	//variable for it item should go to inventory
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		bool bIsInventoryPickup = true;
+
     UFUNCTION(BlueprintCallable)
     FName GetActionText();
 

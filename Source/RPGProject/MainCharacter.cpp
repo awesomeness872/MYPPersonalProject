@@ -27,6 +27,9 @@ AMainCharacter::AMainCharacter()
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	//load game
+	LoadGame();
+
     //display that this class is being used
     if (GEngine){
         GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Using MainCharacter"));
@@ -128,49 +131,53 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 //called when W or S is pressed, adds directional input
 void AMainCharacter::MoveForward(float Value)
 {
-	if (bIsSprinting && Value <= 0) {
-		
-	}
-	else if ((Controller != NULL) && (Value != 0.0f)) {
-		bIsMoving = true;
-		// find out which way is forward
-		FRotator Rotation = Controller->GetControlRotation();
-		// Limit pitch when walking or falling
-		if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling())
-		{
-			Rotation.Pitch = 0.0f;
+	if (bCanMove) {
+		if (bIsSprinting && Value <= 0) {
+
 		}
-		// add movement in that direction
-		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+		else if ((Controller != NULL) && (Value != 0.0f)) {
+			bIsMoving = true;
+			// find out which way is forward
+			FRotator Rotation = Controller->GetControlRotation();
+			// Limit pitch when walking or falling
+			if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling())
+			{
+				Rotation.Pitch = 0.0f;
+			}
+			// add movement in that direction
+			const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+			AddMovementInput(Direction, Value);
+		}
+		if (Value == 0) {
+			bIsMoving = false;
+		}
 	}
-    if (Value == 0){
-        bIsMoving = false;
-    }
 }
 
 //called when A or D is pressed, adds directional input
 void AMainCharacter::MoveRight(float Value)
 {
-    if (!bIsSprinting){
-        if ( (Controller != NULL) && (Value != 0.0f))
-        {
-            bIsMoving = true;
-            // find out which way is right
-            const FRotator Rotation = Controller->GetControlRotation();
-            const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
-            // add movement in that direction
-            AddMovementInput(Direction, Value);
-        }
-        if (Value == 0){
-            bIsMoving = false;
-        }
-    }
+	if (bCanMove) {
+		if (!bIsSprinting) {
+			if ((Controller != NULL) && (Value != 0.0f))
+			{
+				bIsMoving = true;
+				// find out which way is right
+				const FRotator Rotation = Controller->GetControlRotation();
+				const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+				// add movement in that direction
+				AddMovementInput(Direction, Value);
+			}
+			if (Value == 0) {
+				bIsMoving = false;
+			}
+		}
+	}
 }
 
 //called when jump is pressed, starts player jump and sets jumping to true
 void AMainCharacter::JumpPressed(){
-	if (!bIsCrouching && !bIsAimingDownSights){
+	if (!bIsCrouching && !bIsAimingDownSights && bCanMove){
 		if (Stamina >= .1) {
 			//jump
 			bPressedJump = true;
@@ -297,7 +304,7 @@ void AMainCharacter::CrouchReleased() {
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-		if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None) {
+		if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None && bCanMove) {
 			//slow character
 			WalkPressed();
 
@@ -319,7 +326,7 @@ void AMainCharacter::AimPressed(){
 
 //called when aim is released, restores speed and zooms out
 void AMainCharacter::AimReleased(){
-	if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None) {
+	if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None && bCanMove) {
 		//restore speed
 		WalkReleased();
 
@@ -342,7 +349,7 @@ void AMainCharacter::AimReleased(){
 //called when fire is pressed
 void AMainCharacter::FirePressed() {
 	//set bIsFiring to true 
-	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0 && CurrentGunType != EGunType::GT_None) {
+	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0 && CurrentGunType != EGunType::GT_None && bCanMove) {
 		bIsFiring = true;
 		Fire();
 
@@ -363,7 +370,7 @@ void AMainCharacter::FirePressed() {
 
 //called when fire is released
 void AMainCharacter::FireReleased() {
-	if (!bIsReloading && !bIsSprinting && CurrentGunType != EGunType::GT_None) {
+	if (!bIsReloading && !bIsSprinting && CurrentGunType != EGunType::GT_None && bCanMove) {
 		if (bIsAutomaticWeapon) {
 			bIsFiring = false;
 		}
@@ -429,7 +436,7 @@ void AMainCharacter::Fire() {
 
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
-	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None, TotalAmmo > 0) {
+	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None, TotalAmmo > 0 && bCanMove) {
 		bIsReloading = true;
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::ReloadReleased, 2.0f, false);
@@ -871,6 +878,10 @@ bool AMainCharacter::GetIsReloading() {
 	return bIsReloading;
 }
 
+bool AMainCharacter::GetCanMove() {
+	return bCanMove;
+}
+
 EGunType AMainCharacter::GetCurrentGunType() {
 	return CurrentGunType;
 }
@@ -916,6 +927,10 @@ void AMainCharacter::SetIsAutomaticWeapon(bool bIsAutomatic) {
 	bIsAutomaticWeapon = bIsAutomatic;
 }
 
+void AMainCharacter::SetCanMove(bool CanMove) {
+	bCanMove = CanMove;
+}
+
 void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 	Perspective = NewPerspective;
 
@@ -930,5 +945,30 @@ void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 		CameraComp->DetachFromComponent(FDetachmentTransformRules(FDetachmentTransformRules::KeepRelativeTransform));
 		CameraComp->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
 		CameraComp->SetRelativeLocation(FVector(-250.0f, 80.0f, 90.0f));
+	}
+}
+
+void AMainCharacter::SaveGame() {
+	//get reference to save game
+	USavedGame* SaveGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
+	//get reference to player controller
+	AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+	//save value of bOpening
+	SaveGameInstance->bOpening = Con->bOpening;
+	//save game to slot
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
+}
+
+void AMainCharacter::LoadGame() {
+	//get reference to save game
+	USavedGame* LoadGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
+	//load game
+	LoadGameInstance = Cast<USavedGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->SaveSlotName, LoadGameInstance->UserIndex));
+	//check if saved game exists
+	if (LoadGameInstance) {
+		//get reference to player controller
+		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+		//set value of bOpening in player controller
+		Con->SetOpening(LoadGameInstance->bOpening);
 	}
 }

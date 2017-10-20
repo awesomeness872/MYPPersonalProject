@@ -9,6 +9,7 @@
 #include "EnemyCharacter.h"
 #include "InteractableItem.h"
 #include "EGunType.h"
+#include "SavedGame.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
@@ -197,6 +198,9 @@ private:
 	UPROPERTY()
 		bool bIsLookingAtInteractable = false;
 
+	UPROPERTY()
+		bool bCanMove = true;
+
     //variable storing health
     UPROPERTY()
     float Health = 1;
@@ -313,6 +317,9 @@ public:
 		bool GetIsLookingAtInteractable();
 
 	UFUNCTION(BlueprintCallable)
+		bool GetCanMove();
+
+	UFUNCTION(BlueprintCallable)
 		TArray<APickupItem*> GetInventory();
 
 	UFUNCTION(BlueprintCallable)
@@ -344,6 +351,9 @@ public:
 	void SetIsAutomaticWeapon(bool bIsAutomatic);
 
 	UFUNCTION(BlueprintCallable)
+		void SetCanMove(bool canMove);
+
+	UFUNCTION(BlueprintCallable)
 	void AddAmmo(float AmmoToAdd, EGunType GunType);
 
 	UFUNCTION(BlueprintCallable)
@@ -360,4 +370,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void SetPerspective(EPerspective NewPerspective);
+
+	UFUNCTION(BlueprintCallable)
+		void SaveGame();
+
+	UFUNCTION(BlueprintCallable)
+		void LoadGame();
 };

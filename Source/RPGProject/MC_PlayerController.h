@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InventoryWidget.h"
+#include "SavedGame.h"
 #include "MC_PlayerController.generated.h"
 
 /**
@@ -36,10 +37,19 @@ public:
     UUserWidget* UMG_HUD;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<class UUserWidget> wUMG_OpeningPlayer;
+
+	UPROPERTY()
+		UUserWidget* UMG_OpeningPlayer;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
 		TSubclassOf<class UUserWidget> wUMG_PauseMenu;
 
 	UPROPERTY()
 		UUserWidget* UMG_PauseMenu;
+
+	UPROPERTY(EditDefaultsOnly)
+		bool bOpening = true;
 
     //opens or closes the inventory
     void HandleInventoryInput();
@@ -51,4 +61,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void PauseGame();
+
+	UFUNCTION(BlueprintCallable)
+		void PlayOpening();
+
+	UFUNCTION(BlueprintCallable)
+		bool GetbOpening();
+
+	UFUNCTION(BlueprintCallable)
+		void SetOpening(bool Opening);
 };

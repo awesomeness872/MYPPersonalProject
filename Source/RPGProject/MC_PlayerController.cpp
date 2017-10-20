@@ -8,7 +8,7 @@ void AMC_PlayerController::BeginPlay(){
 
     Super::BeginPlay();
 
-    //check if asset is assigned iin blueprint
+    //check if asset is assigned in blueprint
     if (wUMG_HUD){
         //create widget and store it
         UMG_HUD = CreateWidget<UUserWidget>(this, wUMG_HUD);
@@ -19,7 +19,6 @@ void AMC_PlayerController::BeginPlay(){
             UMG_HUD->AddToViewport();
         }
     }
-
 }
 
 void AMC_PlayerController::Possess(APawn *InPawn){
@@ -90,4 +89,27 @@ void AMC_PlayerController::PauseGame() {
 			SetPause(true);
 		}
 	}
+}
+
+void AMC_PlayerController::PlayOpening() {
+	if (bOpening) {
+		if (wUMG_OpeningPlayer) {
+			//create widget and store as variable
+			UMG_OpeningPlayer = CreateWidget<UUserWidget>(this, wUMG_OpeningPlayer);
+			//check is pointer holds widget
+			if (UMG_OpeningPlayer) {
+				//add to viewport
+				UMG_OpeningPlayer->AddToViewport();
+			}
+		}
+		bOpening = false;
+	}
+}
+
+bool AMC_PlayerController::GetbOpening() {
+	return bOpening;
+}
+
+void AMC_PlayerController::SetOpening(bool Opening) {
+	bOpening = Opening;
 }

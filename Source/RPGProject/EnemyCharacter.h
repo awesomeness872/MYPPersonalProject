@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Enemy_AIController.h"
 #include "EGunType.h"
+#include "SavedGame.h"
 #include "EnemyCharacter.generated.h"
 
 UCLASS()
@@ -68,7 +69,7 @@ public:
 		EGunType CurrentGunType;
 
 private:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 		USkeletalMeshComponent* GunComp;
 
 	UPROPERTY(EditAnywhere)
@@ -78,7 +79,7 @@ private:
 		float Health = 1;
 
 	UPROPERTY()
-		float ShootRaycastRange = -10000.f;
+		float ShootRaycastRange = 500.f;
 
 	UPROPERTY()
 		float PlayerRaycastRange = 100.0f;

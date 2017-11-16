@@ -372,6 +372,9 @@ public:
 		void SetPerspective(EPerspective NewPerspective);
 
 	UFUNCTION(BlueprintCallable)
+		void Damage(float Damage);
+
+	UFUNCTION(BlueprintCallable)
 		void SaveGame();
 
 	UFUNCTION(BlueprintCallable)

@@ -126,6 +126,8 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &AMainCharacter::HandleInventoryInput);
 	//input for pause menu
 	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainCharacter::PauseMenu);
+	//button to save game for testing
+	PlayerInputComponent->BindKey("NumPadOne", IE_Pressed, this, &AMainCharacter::SaveGame);
 }
 
 //called when W or S is pressed, adds directional input
@@ -948,15 +950,31 @@ void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 	}
 }
 
+void AMainCharacter::Damage(float Damage) {
+	Health = Health - Damage;
+}
+
 void AMainCharacter::SaveGame() {
 	//get reference to save game
 	USavedGame* SaveGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
-	//get reference to player controller
+	//set reference to playercontroller
 	AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
-	//save value of bOpening
-	SaveGameInstance->bOpening = Con->bOpening;
+		//save value of bOpening
+		SaveGameInstance->bOpening = Con->bOpening;
+		//save inventory
+		SaveGameInstance->Inventory = Inventory;
+		//save player location 
+		SaveGameInstance->PlayerLocation = GetActorLocation();
+		//save player health
+		SaveGameInstance->PlayerHealth = Health;
+		//save player stamina
+		SaveGameInstance->PlayerStamina = Stamina;
+		//save variables in enemy character
 	//save game to slot
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Saving..."));
+	}
 }
 
 void AMainCharacter::LoadGame() {
@@ -966,9 +984,16 @@ void AMainCharacter::LoadGame() {
 	LoadGameInstance = Cast<USavedGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->SaveSlotName, LoadGameInstance->UserIndex));
 	//check if saved game exists
 	if (LoadGameInstance) {
-		//get reference to player controller
-		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
 		//set value of bOpening in player controller
+		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
 		Con->SetOpening(LoadGameInstance->bOpening);
+		//load inventory
+		Inventory = LoadGameInstance->Inventory;
+		//load player postition
+		SetActorLocation(LoadGameInstance->PlayerLocation);
+		//load player health
+		Health = LoadGameInstance->PlayerHealth;
+		//load player stamina 
+		Stamina = LoadGameInstance->PlayerStamina;
 	}
 }

@@ -45,27 +45,29 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 }
 
 void AEnemyCharacter::Fire() {
-	//raycast to see if something that can be hit is in range
-	//calulate start and end location
-	FVector StartLocation = GetMesh()->GetBoneLocation(FName("head"));
-	FVector EndLocation = StartLocation + (GunComp->GetForwardVector() * ShootRaycastRange);
+	if (!bIsDeadCalled) {
+		//raycast to see if something that can be hit is in range
+		//calulate start and end location
+		FVector StartLocation = GetMesh()->GetBoneLocation(FName("thumb_03_l"));
+		FVector EndLocation = StartLocation + (GunComp->GetForwardVector() * ShootRaycastRange);
 
-	FHitResult RaycastHit;
+		FHitResult RaycastHit;
 
-	//raycast should ignore character
-	FCollisionQueryParams CQP;
-	CQP.AddIgnoredActor(this);
+		//raycast should ignore character
+		FCollisionQueryParams CQP;
+		CQP.AddIgnoredActor(this);
 
-	//raycast
-	GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
+		//raycast
+		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
 
-	//draw line
-	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.F, (uint8)'\000', 1.0F);
+		//draw line
+		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.F, (uint8)'\000', 1.0F);
 
-	if (RaycastHit.GetActor() != nullptr) {
-		AMainCharacter* MC = Cast <AMainCharacter>(RaycastHit.GetActor());
-		MC->Damage(.1f);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Firing"));
+		if (RaycastHit.GetActor() != nullptr) {
+			AMainCharacter* MC = Cast <AMainCharacter>(RaycastHit.GetActor());
+			MC->Damage(.1f);
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Firing"));
+		}
 	}
 }
 

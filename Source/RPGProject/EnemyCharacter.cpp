@@ -91,3 +91,11 @@ FVector AEnemyCharacter::GetPlayerLocation() {
 bool AEnemyCharacter::GetHasFoundPlayer() {
 	return bHasFoundPlayer;
 }
+
+float AEnemyCharacter::GetHealth() {
+	return Health;
+}
+
+void AEnemyCharacter::SetHealth(float NewHealth) {
+	Health = NewHealth;
+}

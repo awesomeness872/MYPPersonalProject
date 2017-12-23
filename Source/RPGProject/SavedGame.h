@@ -6,6 +6,7 @@
 #include "GameFramework/SaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "PickupItem.h"
+#include "EnemyCharacter.h"
 #include "SavedGame.generated.h"
 
 /**
@@ -34,6 +35,14 @@ public:
 	//player location
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		FVector PlayerLocation = FVector(-860.f, -100.f, 602.f);
+
+	//enemy health
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<float> EnemyHealths;
+
+	//enemy class
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<AEnemyCharacter*> EnemyClass;
 
 	UPROPERTY(VisibleAnywhere, Category = SaveSlotData)
 		FString SaveSlotName;

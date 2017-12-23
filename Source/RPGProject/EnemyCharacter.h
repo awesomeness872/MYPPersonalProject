@@ -6,7 +6,6 @@
 #include "GameFramework/Character.h"
 #include "Enemy_AIController.h"
 #include "EGunType.h"
-#include "SavedGame.h"
 #include "EnemyCharacter.generated.h"
 
 UCLASS()
@@ -43,6 +42,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		bool GetHasFoundPlayer();
+
+	UFUNCTION(BlueprintCallable)
+		float GetHealth();
+
+	UFUNCTION(BlueprintCallable)
+		void SetHealth(float NewHealth);
 
 	//variable storing current ammo amount
 	UPROPERTY(EditDefaultsOnly)

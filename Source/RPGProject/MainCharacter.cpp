@@ -973,6 +973,7 @@ void AMainCharacter::SaveGame() {
 		for (TActorIterator<AEnemyCharacter> EnemyCharacterItr(GetWorld()); EnemyCharacterItr; ++EnemyCharacterItr) {
 			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(*EnemyCharacterItr);
 			SaveGameInstance->EnemyHealths.Add(EnemyRef->GetHealth());
+			SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
 			SaveGameInstance->EnemyClass.Add(EnemyRef);
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Saved Enemy"));
 		}
@@ -1001,13 +1002,15 @@ void AMainCharacter::LoadGame() {
 		Health = LoadGameInstance->PlayerHealth;
 		//load player stamina 
 		Stamina = LoadGameInstance->PlayerStamina;
-		//save variables for enemies
+		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
-			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
-			EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded Enemy"));
-			FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
+			if (LoadGameInstance->EnemyClass[i]->IsInPersistentLevel()) {
+				AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
+				EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
+				EnemyRef->SetActorLocationAndRotation(LoadGameInstance->EnemyTransform[i].GetLocation(), LoadGameInstance->EnemyTransform[i].GetRotation());
+				FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
+			}
 		}
 	}
 }

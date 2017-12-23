@@ -40,6 +40,10 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<float> EnemyHealths;
 
+	//enemy transform
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<FTransform> EnemyTransform;
+
 	//enemy class
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<AEnemyCharacter*> EnemyClass;

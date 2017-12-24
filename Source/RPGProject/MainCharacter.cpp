@@ -120,6 +120,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AMainCharacter::FirePressed);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AMainCharacter::FireReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AMainCharacter::ReloadPressed);
+	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMainCharacter::Melee);
     //input for inventory actions
     PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AMainCharacter::PickupItem);
     PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &AMainCharacter::DropEquippedItem);
@@ -436,6 +437,39 @@ void AMainCharacter::Fire() {
 	}
 }
 
+//called when melee is pressed, short raycast and deal damage on hit
+void AMainCharacter::Melee() {
+	if (!bIsSprinting && !bIsReloading) {
+		//raycast to see if something that can be hit is in range
+		//calulate start and end location
+		FVector StartLocation = CameraComp->GetComponentLocation();
+		FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * 500);
+
+		FHitResult RaycastHit;
+
+		//raycast should ignore character
+		FCollisionQueryParams CQP;
+		CQP.AddIgnoredActor(this);
+
+		//raycast
+		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
+
+		if (RaycastHit.GetActor() != nullptr) {
+			AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(RaycastHit.GetActor());
+			Enemy->Damage(MeleeDamage);
+
+			//set meleeattacking to true
+			bIsMeleeAttacking = true;
+
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Object Hit"));
+			}
+		}
+		//set value of meleeattacking to false
+		bIsMeleeAttacking = false;
+	}
+}
+
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
 	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None, TotalAmmo > 0 && bCanMove) {
@@ -548,6 +582,7 @@ void AMainCharacter::PickupItem(){
 		//check is item has image, if not dont add and activate use, if it does add to inventory
 		if (!LastSeenItem->bIsInventoryPickup) {
 			LastSeenItem->UseItem();
+			LastSeenItem->bPickedUp = true;
 
 			//destroy item from game
 			LastSeenItem->Destroy();
@@ -557,6 +592,7 @@ void AMainCharacter::PickupItem(){
 			Inventory[AvailableSlot] = LastSeenItem;
 
 			//disable item from game
+			LastSeenItem->bPickedUp = true;
 			LastSeenItem->PickupMesh->SetEnableGravity(false);
 			LastSeenItem->SetActorEnableCollision(false);
 			LastSeenItem->PickupMesh->SetVisibility(false);
@@ -959,24 +995,31 @@ void AMainCharacter::SaveGame() {
 	USavedGame* SaveGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
 	//set reference to playercontroller
 	AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
-		//save value of bOpening
-		SaveGameInstance->bOpening = Con->bOpening;
-		//save inventory
-		SaveGameInstance->Inventory = Inventory;
-		//save player location 
-		SaveGameInstance->PlayerLocation = GetActorLocation();
-		//save player health
-		SaveGameInstance->PlayerHealth = Health;
-		//save player stamina
-		SaveGameInstance->PlayerStamina = Stamina;
-		//save variables in enemy character
-		for (TActorIterator<AEnemyCharacter> EnemyCharacterItr(GetWorld()); EnemyCharacterItr; ++EnemyCharacterItr) {
-			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(*EnemyCharacterItr);
-			SaveGameInstance->EnemyHealths.Add(EnemyRef->GetHealth());
-			SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
-			SaveGameInstance->EnemyClass.Add(EnemyRef);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Saved Enemy"));
-		}
+	//save value of bOpening
+	SaveGameInstance->bOpening = Con->bOpening;
+	//save inventory
+	SaveGameInstance->Inventory = Inventory;
+	//save player location 
+	SaveGameInstance->PlayerLocation = GetActorLocation();
+	//save player health
+	SaveGameInstance->PlayerHealth = Health;
+	//save player stamina
+	SaveGameInstance->PlayerStamina = Stamina;
+	//save variables in enemy character
+	for (TActorIterator<AEnemyCharacter> EnemyCharacterItr(GetWorld()); EnemyCharacterItr; ++EnemyCharacterItr) {
+		AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(*EnemyCharacterItr);
+		SaveGameInstance->EnemyHealths.Add(EnemyRef->GetHealth());
+		SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
+		SaveGameInstance->EnemyDead.Add(EnemyRef->GetDead());
+		SaveGameInstance->EnemyClass.Add(EnemyRef);
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Saved Enemy"));
+	}
+	//save pickupitems in game
+	for (TActorIterator<APickupItem> PickupItr(GetWorld()); PickupItr; ++PickupItr){
+		APickupItem* PickupRef = Cast<APickupItem>(*PickupItr);
+		SaveGameInstance->PickupStatus.Add(PickupRef->bPickedUp);
+		SaveGameInstance->PickupClass.Add(PickupRef);
+	}	
 	//save game to slot
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
 	if (GEngine) {
@@ -1004,12 +1047,21 @@ void AMainCharacter::LoadGame() {
 		Stamina = LoadGameInstance->PlayerStamina;
 		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
-			if (LoadGameInstance->EnemyClass[i]->IsInPersistentLevel()) {
-				AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
-				EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
-				EnemyRef->SetActorLocationAndRotation(LoadGameInstance->EnemyTransform[i].GetLocation(), LoadGameInstance->EnemyTransform[i].GetRotation());
-				FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
+			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
+			EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
+			EnemyRef->SetActorLocationAndRotation(LoadGameInstance->EnemyTransform[i].GetLocation(), LoadGameInstance->EnemyTransform[i].GetRotation());
+			//if enemy is saved as dead, delete from game
+			if (LoadGameInstance->EnemyDead[i]) {
+				EnemyRef->Despawn();
+			}
+			FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
+		}
+		//oad variables for pickups
+		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
+			APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
+			if (LoadGameInstance->PickupStatus[i]) {
+				PickupRef->Destroy();
 			}
 		}
 	}

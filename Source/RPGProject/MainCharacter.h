@@ -142,6 +142,10 @@ private:
 	UFUNCTION()
 		void PauseMenu();
 
+	//function for melee attacking
+	UFUNCTION()
+		void Melee();
+
     UPROPERTY()
     bool bIsInventoryOpen = false;
 
@@ -226,6 +230,18 @@ private:
 
 	UPROPERTY()
 	float RateOfFire;
+	
+	UPROPERTY()
+		float MeleeRange = 50;
+
+	UPROPERTY()
+		float MeleeDamage = .2;
+
+	UPROPERTY()
+		float MeleeCooldown = 2;
+
+	UPROPERTY()
+		bool bIsMeleeAttacking = false;
 
 	UPROPERTY()
 	bool bIsAutomaticWeapon = false;

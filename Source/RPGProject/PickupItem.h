@@ -49,6 +49,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		bool bIsInventoryPickup = true;
 
+	//variable for if it got picked up
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		bool bPickedUp = false;
+
     UFUNCTION(BlueprintCallable)
     FName GetActionText();
 

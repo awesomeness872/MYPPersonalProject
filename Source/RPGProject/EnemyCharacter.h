@@ -38,16 +38,25 @@ public:
 		void Damage(float Damage);
 
 	UFUNCTION(BlueprintCallable)
+		void SetDead(bool NewDead);
+
+	UFUNCTION(BlueprintCallable)
 		FVector GetPlayerLocation();
 
 	UFUNCTION(BlueprintCallable)
 		bool GetHasFoundPlayer();
 
 	UFUNCTION(BlueprintCallable)
+		bool GetDead();
+
+	UFUNCTION(BlueprintCallable)
 		float GetHealth();
 
 	UFUNCTION(BlueprintCallable)
 		void SetHealth(float NewHealth);
+
+	UFUNCTION(BlueprintCallable)
+		void Despawn();
 
 	//variable storing current ammo amount
 	UPROPERTY(EditDefaultsOnly)
@@ -97,4 +106,7 @@ private:
 
 	UPROPERTY()
 		FVector PlayerLocation;
+
+	UPROPERTY()
+		FTimerHandle DeadTimer;
 };

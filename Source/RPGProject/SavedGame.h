@@ -44,10 +44,21 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<FTransform> EnemyTransform;
 
+	//enemy dead status
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<bool> EnemyDead;
 	//enemy class
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<AEnemyCharacter*> EnemyClass;
 
+	//pickup status
+	UPROPERTY(VisibleAnywhere, Category = PickupItem)
+		TArray<bool> PickupStatus;
+
+	//pickup class
+	UPROPERTY(VisibleAnywhere, Category = PickupItem)
+		TArray<APickupItem*> PickupClass;
+	
 	UPROPERTY(VisibleAnywhere, Category = SaveSlotData)
 		FString SaveSlotName;
 

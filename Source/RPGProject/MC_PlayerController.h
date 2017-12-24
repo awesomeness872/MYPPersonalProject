@@ -49,7 +49,7 @@ public:
 		UUserWidget* UMG_PauseMenu;
 
 	UPROPERTY(EditDefaultsOnly)
-		bool bOpening = true;
+		bool bOpening = false;
 
     //opens or closes the inventory
     void HandleInventoryInput();

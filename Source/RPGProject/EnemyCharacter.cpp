@@ -78,6 +78,12 @@ void AEnemyCharacter::Dead() {
 
 	//change value of bDeadCalled
 	bIsDeadCalled = true;
+
+	GetWorld()->GetTimerManager().SetTimer(DeadTimer, this, &AEnemyCharacter::Despawn, 20.0f, false);
+}
+
+void AEnemyCharacter::Despawn() {
+	Destroy();
 }
 
 void AEnemyCharacter::Damage(float Damage) {
@@ -98,4 +104,12 @@ float AEnemyCharacter::GetHealth() {
 
 void AEnemyCharacter::SetHealth(float NewHealth) {
 	Health = NewHealth;
+}
+
+bool AEnemyCharacter::GetDead() {
+	return bIsDeadCalled;
+}
+
+void AEnemyCharacter::SetDead(bool NewDead) {
+	bIsDeadCalled = NewDead;
 }

@@ -79,11 +79,13 @@ void AEnemyCharacter::Dead() {
 	//change value of bDeadCalled
 	bIsDeadCalled = true;
 
-	GetWorld()->GetTimerManager().SetTimer(DeadTimer, this, &AEnemyCharacter::Despawn, 20.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(DeadTimer, this, &AEnemyCharacter::Despawn, 10.0f, false);
 }
 
 void AEnemyCharacter::Despawn() {
-	Destroy();
+	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+	GetMesh()->SetVisibility(false);
 }
 
 void AEnemyCharacter::Damage(float Damage) {

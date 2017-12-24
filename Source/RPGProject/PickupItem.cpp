@@ -43,6 +43,9 @@ FName APickupItem::GetActionText(){
     return ActionText;
 }
 
+bool APickupItem::GetPickedUp() {
+	return bPickedUp;
+}
 void APickupItem::UseItem_Implementation()
 {
 }
@@ -61,4 +64,13 @@ void APickupItem::SetPickupDescription(FName NewPickupDescription) {
 
 void APickupItem::SetActionText(FName NewActionText) {
 	ActionText = NewActionText;
+}
+
+void APickupItem::SetPickedUp(bool NewPickedUp) {
+	bPickedUp = NewPickedUp;
+	if (NewPickedUp) {
+		PickupMesh->SetEnableGravity(false);
+		SetActorEnableCollision(false);
+		PickupMesh->SetVisibility(false);
+	}
 }

@@ -153,6 +153,12 @@ private:
     UPROPERTY(VisibleAnywhere)
     TArray<APickupItem*> Inventory;
 
+	//array for pickup status to be saved
+	TArray<bool> PickupStatus;
+
+	//array for pickup classes to be saved
+	TArray<APickupItem*> PickupClass;
+
     //reference to currently held item
 	UPROPERTY()
 		APickupItem* CurrentlyEquippedItem;

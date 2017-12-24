@@ -582,20 +582,14 @@ void AMainCharacter::PickupItem(){
 		//check is item has image, if not dont add and activate use, if it does add to inventory
 		if (!LastSeenItem->bIsInventoryPickup) {
 			LastSeenItem->UseItem();
-			LastSeenItem->bPickedUp = true;
-
-			//destroy item from game
-			LastSeenItem->Destroy();
+			LastSeenItem->SetPickedUp(true);
 		}
 		else if (AvailableSlot != INDEX_NONE) {
 			//add item to first valid slot
 			Inventory[AvailableSlot] = LastSeenItem;
 
 			//disable item from game
-			LastSeenItem->bPickedUp = true;
-			LastSeenItem->PickupMesh->SetEnableGravity(false);
-			LastSeenItem->SetActorEnableCollision(false);
-			LastSeenItem->PickupMesh->SetVisibility(false);
+			LastSeenItem->SetPickedUp(true);
 
 			if (bIsInventoryOpen) {
 				InventoryRef->Show();
@@ -1017,7 +1011,7 @@ void AMainCharacter::SaveGame() {
 	//save pickupitems in game
 	for (TActorIterator<APickupItem> PickupItr(GetWorld()); PickupItr; ++PickupItr){
 		APickupItem* PickupRef = Cast<APickupItem>(*PickupItr);
-		SaveGameInstance->PickupStatus.Add(PickupRef->bPickedUp);
+		SaveGameInstance->PickupStatus.Add(PickupRef->GetPickedUp());
 		SaveGameInstance->PickupClass.Add(PickupRef);
 	}	
 	//save game to slot
@@ -1057,12 +1051,13 @@ void AMainCharacter::LoadGame() {
 			FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
 		}
-		//oad variables for pickups
+		//load variables for pickups
 		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
 			APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
-			if (LoadGameInstance->PickupStatus[i]) {
-				PickupRef->Destroy();
-			}
+			PickupRef->SetPickedUp(LoadGameInstance->PickupStatus[i]);
+		}
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded"));
 		}
 	}
 }

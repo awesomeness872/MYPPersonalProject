@@ -73,4 +73,9 @@ void APickupItem::SetPickedUp(bool NewPickedUp) {
 		SetActorEnableCollision(false);
 		PickupMesh->SetVisibility(false);
 	}
+	else {
+		PickupMesh->SetEnableGravity(true);
+		SetActorEnableCollision(true);
+		PickupMesh->SetVisibility(true);
+	}
 }

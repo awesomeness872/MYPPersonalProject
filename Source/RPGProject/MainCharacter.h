@@ -8,18 +8,10 @@
 #include "InventoryWidget.h"
 #include "EnemyCharacter.h"
 #include "InteractableItem.h"
-#include "EGunType.h"
 #include "SavedGame.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
-
-UENUM(BlueprintType)
-enum class EPerspective : uint8
-{
-	P_1P UMETA(DisplayName = "First Person"),
-	P_3P UMETA(DisplayName = "Third Person"),
-};
 
 UCLASS()
 class RPGPROJECT_API AMainCharacter : public ACharacter
@@ -219,23 +211,9 @@ private:
     UPROPERTY()
     float Stamina = 1;
 
-    //variable storing current ammo amount
-    UPROPERTY()
-    float CurrentAmmo = 0;
-
-	//variable storing max ammo in clip
+	//variable for gun information
 	UPROPERTY()
-	float MaxAmmo = 0;
-
-    //variable storing total ammo
-    UPROPERTY()
-    float TotalAmmo = 0;
-
-	UPROPERTY()
-	float DamagePerRound;
-
-	UPROPERTY()
-	float RateOfFire;
+		FGunInformation CurrentGun;
 	
 	UPROPERTY()
 		float MeleeRange = 50;
@@ -248,12 +226,6 @@ private:
 
 	UPROPERTY()
 		bool bIsMeleeAttacking = false;
-
-	UPROPERTY()
-	bool bIsAutomaticWeapon = false;
-
-	UPROPERTY()
-	EGunType CurrentGunType;
 
 	UPROPERTY()
 	UInventoryWidget* InventoryRef;
@@ -288,14 +260,6 @@ public:
     UFUNCTION(BlueprintCallable)
     float GetStamina();
 
-    //variable storing current ammo amount
-    UFUNCTION(BlueprintCallable)
-    float GetCurrentAmmo();
-
-    //variable storing total ammo
-    UFUNCTION(BlueprintCallable)
-    float GetTotalAmmo();
-
 	UFUNCTION(BlueprintCallable)
 		FName GetInteractionAction();
 
@@ -319,9 +283,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool GetIsInventoryOpen();
-
-	UFUNCTION(BlueprintCallable)
-	bool GetIsAutomaticWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	bool GetIsCrouching();
@@ -348,7 +309,7 @@ public:
 		EPerspective GetPerspective();
 
 	UFUNCTION(BlueprintCallable)
-		EGunType GetCurrentGunType();
+		FGunInformation GetCurrentGun();
 
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
@@ -356,21 +317,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentlyEquippedItem(APickupItem* Item);
-
-	UFUNCTION(BlueprintCallable)
-	void SetMaxAmmo(float NewMaxAmmo);
-
-	UFUNCTION(BlueprintCallable)
-	void SetGunMesh(USkeletalMesh* NewGunMesh);
-
-	UFUNCTION(BlueprintCallable)
-	void SetDamagePerRound(float NewDPR);
-
-	UFUNCTION(BlueprintCallable)
-	void SetRateOfFire(float NewRateOfFire);
-
-	UFUNCTION(BlueprintCallable)
-	void SetIsAutomaticWeapon(bool bIsAutomatic);
 
 	UFUNCTION(BlueprintCallable)
 		void SetCanMove(bool canMove);
@@ -388,7 +334,7 @@ public:
 	void ItemUsed();
 
 	UFUNCTION(BlueprintCallable)
-		void SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamagePerRound, float NewRateOfFire, bool NewbIsAutomatic, USkeletalMesh* NewGunSKMesh, FVector NewGunLocation, FRotator NewGunRotation, FVector NewGunScale);
+		void SwitchGun(FGunInformation NewGun);
 
 	UFUNCTION(BlueprintCallable)
 		void SetPerspective(EPerspective NewPerspective);

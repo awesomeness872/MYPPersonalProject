@@ -45,7 +45,7 @@ void AMainCharacter::BeginPlay()
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 
 	//set gun type to none
-	CurrentGunType = EGunType::GT_None;
+	CurrentGun.Type = EGunType::GT_None;
 
 	//set camera and mesh for perspective
 	SetPerspective(GetPerspective());
@@ -307,7 +307,7 @@ void AMainCharacter::CrouchReleased() {
 
 //called when aim is pressed, slows speed and zooms in
 void AMainCharacter::AimPressed(){
-		if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None && bCanMove) {
+		if (!bIsInventoryOpen && !bIsReloading && CurrentGun.Type!=EGunType::GT_None && bCanMove) {
 			//slow character
 			WalkPressed();
 
@@ -329,7 +329,7 @@ void AMainCharacter::AimPressed(){
 
 //called when aim is released, restores speed and zooms out
 void AMainCharacter::AimReleased(){
-	if (!bIsInventoryOpen && !bIsReloading && CurrentGunType!=EGunType::GT_None && bCanMove) {
+	if (!bIsInventoryOpen && !bIsReloading && CurrentGun.Type!=EGunType::GT_None && bCanMove) {
 		//restore speed
 		WalkReleased();
 
@@ -352,12 +352,12 @@ void AMainCharacter::AimReleased(){
 //called when fire is pressed
 void AMainCharacter::FirePressed() {
 	//set bIsFiring to true 
-	if (!bIsReloading && !bIsSprinting && CurrentAmmo > 0 && CurrentGunType != EGunType::GT_None && bCanMove) {
+	if (!bIsReloading && !bIsSprinting && CurrentGun.CurrentAmmo > 0 && CurrentGun.Type != EGunType::GT_None && bCanMove) {
 		bIsFiring = true;
 		Fire();
 
-		if (bIsAutomaticWeapon) {
-			GetWorldTimerManager().SetTimer(FireTimer, this, &AMainCharacter::Fire, RateOfFire, true);
+		if (CurrentGun.bIsAutomatic) {
+			GetWorldTimerManager().SetTimer(FireTimer, this, &AMainCharacter::Fire, CurrentGun.RateOfFire, true);
 		}
 
 		else {
@@ -373,8 +373,8 @@ void AMainCharacter::FirePressed() {
 
 //called when fire is released
 void AMainCharacter::FireReleased() {
-	if (!bIsReloading && !bIsSprinting && CurrentGunType != EGunType::GT_None && bCanMove) {
-		if (bIsAutomaticWeapon) {
+	if (!bIsReloading && !bIsSprinting && CurrentGun.Type != EGunType::GT_None && bCanMove) {
+		if (CurrentGun.bIsAutomatic) {
 			bIsFiring = false;
 		}
 
@@ -398,9 +398,9 @@ void AMainCharacter::FireSingleReleased() {
 //fires weapon
 void AMainCharacter::Fire() {
 	//checks if there is enough ammo
-	if (bIsFiring && CurrentAmmo > 0 && !bIsSprinting) {
+	if (bIsFiring && CurrentGun.CurrentAmmo > 0 && !bIsSprinting) {
 		//reduce current ammo
-		CurrentAmmo--;
+		CurrentGun.CurrentAmmo--;
 
 		//raycast to see if something that can be hit is in range
 		//calulate start and end location
@@ -423,7 +423,7 @@ void AMainCharacter::Fire() {
 
 		if (RaycastHit.GetActor() != nullptr) {
 			AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(RaycastHit.GetActor());
-			Enemy->Damage(DamagePerRound);
+			Enemy->Damage(CurrentGun.DamagePerRound);
 
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Object Hit"));
@@ -472,7 +472,7 @@ void AMainCharacter::Melee() {
 
 //called when reload is pressed. sets value of Reloading
 void AMainCharacter::ReloadPressed() {
-	if (CurrentAmmo != MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGunType!=EGunType::GT_None, TotalAmmo > 0 && bCanMove) {
+	if (CurrentGun.CurrentAmmo != CurrentGun.MaxAmmo && !GetCharacterMovement()->IsFalling() && CurrentGun.Type!=EGunType::GT_None, CurrentGun.TotalAmmo > 0 && bCanMove) {
 		bIsReloading = true;
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &AMainCharacter::ReloadReleased, 2.0f, false);
@@ -484,22 +484,22 @@ void AMainCharacter::ReloadReleased() {
 	bIsReloading = false;
 
 	//check if there is enough ammo to reload
-	if (TotalAmmo >= MaxAmmo) {
+	if (CurrentGun.TotalAmmo >= CurrentGun.MaxAmmo) {
 		//decide how much ammo to add to current ammo
-		float AmmoDiff = MaxAmmo - CurrentAmmo;
+		float AmmoDiff = CurrentGun.MaxAmmo - CurrentGun.CurrentAmmo;
 
 		//set clip full
-		CurrentAmmo = CurrentAmmo + AmmoDiff;
+		CurrentGun.CurrentAmmo = CurrentGun.CurrentAmmo + AmmoDiff;
 
 		//subtract from total ammo
-		TotalAmmo = TotalAmmo - AmmoDiff;
+		CurrentGun.TotalAmmo = CurrentGun.TotalAmmo - AmmoDiff;
 	}
 	else {
 		//set currrent ammo to whatever is left
-		CurrentAmmo = TotalAmmo;
+		CurrentGun.CurrentAmmo = CurrentGun.TotalAmmo;
 
 		//set total ammo to 0
-		TotalAmmo = 0;
+		CurrentGun.TotalAmmo = 0;
 	}
 
 	if (GEngine) {
@@ -668,12 +668,8 @@ void AMainCharacter::DropEquippedItem(){
 			//the location of drop
 			FVector DropLocation = DropItem.Location + FVector(0.0f, 0.0f, 10.0f);
 
-			//FVector DropLocation = GetActorLocation() + (GetActorForwardVector() *200);
-
 			//enabling pickup
-			CurrentlyEquippedItem->PickupMesh->SetEnableGravity(true);
-
-			CurrentlyEquippedItem->SetActorEnableCollision(true);
+			CurrentlyEquippedItem->SetPickedUp(false);
 
 			//check if hit was successful, if so place item at hit location if not place item in front of player view a fixed distance
 			if (DropItem.bBlockingHit) {
@@ -707,15 +703,15 @@ void AMainCharacter::ItemUsed() {
 }
 
 //called when switching weapons
-void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamagePerRound, float NewRateOfFire, bool NewbIsAutomatic, USkeletalMesh* NewGunSKMesh, FVector NewGunLocation, FRotator NewGunRotation, FVector NewGunScale){
-	switch (CurrentGunType) {
+void AMainCharacter::SwitchGun(FGunInformation NewGun){
+	switch (CurrentGun.Type) {
 		case EGunType::GT_None:
 			break;
 
 		case EGunType::GT_MG45:
-			CurrentAmmo_MG45 = CurrentAmmo;
+			CurrentAmmo_MG45 = CurrentGun.CurrentAmmo;
 
-			TotalAmmo_MG45 = TotalAmmo;
+			TotalAmmo_MG45 = CurrentGun.TotalAmmo;
 
 			break;
 
@@ -726,21 +722,23 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 	}
 
 	//check what kind of gun is getting equipped and store its ammo values
-	switch (NewGun) {
+	switch (NewGun.Type) {
 		case EGunType::GT_None:
-			CurrentAmmo = 0;
+			CurrentGun.CurrentAmmo = 0;
 
-			TotalAmmo = 0;
+			CurrentGun.TotalAmmo = 0;
 
-			CurrentGunType = EGunType::GT_None;
+			CurrentGun.MaxAmmo = 0;
+
+			CurrentGun.Type = EGunType::GT_None;
 			break;
 
 		case EGunType::GT_MG45:
-			CurrentAmmo = CurrentAmmo_MG45;
+			CurrentGun.CurrentAmmo = CurrentAmmo_MG45;
 
-			TotalAmmo = TotalAmmo_MG45;
+			CurrentGun.TotalAmmo = TotalAmmo_MG45;
 
-			CurrentGunType = EGunType::GT_MG45;
+			CurrentGun.Type = EGunType::GT_MG45;
 			break; 
 
 		default:
@@ -750,17 +748,17 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 	}
 
 	//change variables based on new variables
-	MaxAmmo = NewMaxAmmo;
-	DamagePerRound = NewDamagePerRound;
-	RateOfFire = NewRateOfFire;
-	bIsAutomaticWeapon = NewbIsAutomatic;
+	CurrentGun.MaxAmmo = NewGun.MaxAmmo;
+	CurrentGun.DamagePerRound = NewGun.DamagePerRound;
+	CurrentGun.RateOfFire = NewGun.RateOfFire;
+	CurrentGun.bIsAutomatic = NewGun.bIsAutomatic;
 	
 	//change gun mesh
-	GunComp->SetSkeletalMesh(NewGunSKMesh);
+	GunComp->SetSkeletalMesh(NewGun.GunSkMesh);
 
 	//set location, rotation, and scale
-	GunComp->SetRelativeLocationAndRotation(NewGunLocation, NewGunRotation);
-	GunComp->SetRelativeScale3D(NewGunScale);
+	GunComp->SetRelativeLocationAndRotation(NewGun.GunOffset.GetLocation(), NewGun.GunOffset.GetRotation());
+	GunComp->SetRelativeScale3D(NewGun.GunOffset.GetScale3D());
 
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Gun Switched"));
@@ -768,8 +766,8 @@ void AMainCharacter::SwitchGun(EGunType NewGun, float NewMaxAmmo, float NewDamag
 }
 
 void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
-	if (GunType == CurrentGunType) {
-		TotalAmmo = TotalAmmo + AmmoToAdd;
+	if (GunType == CurrentGun.Type) {
+		CurrentGun.TotalAmmo = CurrentGun.TotalAmmo + AmmoToAdd;
 	}
 	switch (GunType) {
 	case EGunType::GT_None:
@@ -795,16 +793,6 @@ bool AMainCharacter::GetIsJumping(){
 //called manually, returns value of bDeadCalled
 bool AMainCharacter::GetDeadCalled(){
     return bDeadCalled;
-}
-
-//called manually, returns value of CurrentAmmo
-float AMainCharacter::GetCurrentAmmo(){
-    return CurrentAmmo;
-}
-
-//called manually, returns value of TotalAmmo
-float AMainCharacter::GetTotalAmmo(){
-    return TotalAmmo;
 }
 
 //called manually, returns value of Health
@@ -894,10 +882,6 @@ bool AMainCharacter::GetIsInventoryOpen() {
 	return bIsInventoryOpen;
 }
 
-bool AMainCharacter::GetIsAutomaticWeapon() {
-	return bIsAutomaticWeapon;
-}
-
 USkeletalMeshComponent* AMainCharacter::GetGunComp() {
 	return GunComp;
 }
@@ -912,10 +896,6 @@ bool AMainCharacter::GetIsReloading() {
 
 bool AMainCharacter::GetCanMove() {
 	return bCanMove;
-}
-
-EGunType AMainCharacter::GetCurrentGunType() {
-	return CurrentGunType;
 }
 
 bool AMainCharacter::GetIsFiring() {
@@ -934,29 +914,11 @@ EPerspective AMainCharacter::GetPerspective() {
 	return Perspective;
 }
 
+FGunInformation AMainCharacter::GetCurrentGun() {
+	return CurrentGun;
+}
 void AMainCharacter::SetCurrentlyEquippedItem(APickupItem* Item) {
 	CurrentlyEquippedItem = Item;
-}
-
-void AMainCharacter::SetMaxAmmo(float NewMaxAmmo) {
-	MaxAmmo = NewMaxAmmo;
-}
-
-void AMainCharacter::SetGunMesh(USkeletalMesh* NewGunMesh) {
-	GunComp->SetSkeletalMesh(NewGunMesh);
-}
-
-void  AMainCharacter::SetDamagePerRound(float NewDPR) {
-	DamagePerRound = NewDPR;
-
-}
-
-void  AMainCharacter::SetRateOfFire(float NewRateOfFire) {
-	RateOfFire = NewRateOfFire;
-}
-
-void AMainCharacter::SetIsAutomaticWeapon(bool bIsAutomatic) {
-	bIsAutomaticWeapon = bIsAutomatic;
 }
 
 void AMainCharacter::SetCanMove(bool CanMove) {
@@ -999,6 +961,10 @@ void AMainCharacter::SaveGame() {
 	SaveGameInstance->PlayerHealth = Health;
 	//save player stamina
 	SaveGameInstance->PlayerStamina = Stamina;
+	//save player weapon information
+	SaveGameInstance->PlayerCurrentGun = CurrentGun;
+	//save player perspective
+	SaveGameInstance->PlayerPerspective = Perspective;
 	//save variables in enemy character
 	for (TActorIterator<AEnemyCharacter> EnemyCharacterItr(GetWorld()); EnemyCharacterItr; ++EnemyCharacterItr) {
 		AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(*EnemyCharacterItr);
@@ -1006,18 +972,18 @@ void AMainCharacter::SaveGame() {
 		SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
 		SaveGameInstance->EnemyDead.Add(EnemyRef->GetDead());
 		SaveGameInstance->EnemyClass.Add(EnemyRef);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Saved Enemy"));
 	}
 	//save pickupitems in game
 	for (TActorIterator<APickupItem> PickupItr(GetWorld()); PickupItr; ++PickupItr){
 		APickupItem* PickupRef = Cast<APickupItem>(*PickupItr);
 		SaveGameInstance->PickupStatus.Add(PickupRef->GetPickedUp());
+		SaveGameInstance->PickupLocation.Add(PickupRef->GetActorTransform());
 		SaveGameInstance->PickupClass.Add(PickupRef);
 	}	
 	//save game to slot
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Saving..."));
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Saved"));
 	}
 }
 
@@ -1039,6 +1005,10 @@ void AMainCharacter::LoadGame() {
 		Health = LoadGameInstance->PlayerHealth;
 		//load player stamina 
 		Stamina = LoadGameInstance->PlayerStamina;
+		//load player gun information
+		CurrentGun = LoadGameInstance->PlayerCurrentGun; 
+		//load player perspective
+		SetPerspective(LoadGameInstance->PlayerPerspective);
 		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
 			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
@@ -1055,6 +1025,7 @@ void AMainCharacter::LoadGame() {
 		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
 			APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
 			PickupRef->SetPickedUp(LoadGameInstance->PickupStatus[i]);
+			PickupRef->SetActorTransform(LoadGameInstance->PickupLocation[i]);
 		}
 		if (GEngine) {
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded"));

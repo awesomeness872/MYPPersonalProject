@@ -12,6 +12,14 @@
 /**
  * 
  */
+
+UENUM(BlueprintType)
+enum class EPerspective : uint8
+{
+	P_1P UMETA(DisplayName = "First Person"),
+	P_3P UMETA(DisplayName = "Third Person"),
+};
+
 UCLASS()
 class RPGPROJECT_API USavedGame : public USaveGame
 {
@@ -32,9 +40,16 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		float PlayerStamina = 1.0;
 
+	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
+		FGunInformation PlayerCurrentGun;
+
 	//player location
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		FVector PlayerLocation = FVector(-860.f, -100.f, 602.f);
+
+	//player perspective
+	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
+		EPerspective PlayerPerspective;
 
 	//enemy health
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
@@ -54,6 +69,9 @@ public:
 	//pickup status
 	UPROPERTY(VisibleAnywhere, Category = PickupItem)
 		TArray<bool> PickupStatus;
+
+	UPROPERTY(VisibleAnywhere, Category = PickupItem)
+		TArray<FTransform> PickupLocation;
 
 	//pickup class
 	UPROPERTY(VisibleAnywhere, Category = PickupItem)

@@ -29,11 +29,16 @@
 		{
 			"Name": "CodeLiteSourceCodeAccess",
 			"Enabled": false
+		},
+		{
+			"Name": "AnalyticsBlueprintLibrary",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor",
 		"LinuxNoEditor",
-		"MacNoEditor"
+		"MacNoEditor",
+		"AllDesktop"
 	]
 }

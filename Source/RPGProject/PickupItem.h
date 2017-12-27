@@ -58,7 +58,7 @@ public:
     FName GetActionText();
 
     //variable for item picture
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    UPROPERTY(EditDefaultsOnly)
     UTexture2D* PickupImage;
 
     UFUNCTION()

@@ -13,8 +13,6 @@ APickupItem::APickupItem()
     //initialize proerties
     PickupMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("PickupMesh"));
 
-    PickupImage = CreateDefaultSubobject<UTexture2D>(FName("ItemTexture"));
-
     //setup PickupMesh as root component
     RootComponent = PickupMesh;
 }

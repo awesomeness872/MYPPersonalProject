@@ -5,8 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Enemy_AIController.h"
-#include "EGunType.h"
 #include "EnemyCharacter.generated.h"
+
+UENUM(BlueprintType)
+enum class EEnemyType : uint8
+{
+	ET_Basic UMETA(DisplayName = "Basic Enemy"),
+	ET_Zombie UMETA(DisplayName = "Zombie"),
+};
 
 UCLASS()
 class RPGPROJECT_API AEnemyCharacter : public ACharacter
@@ -28,8 +34,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(EditDefaultsOnly)
+		float Health = 1;
+
+	UPROPERTY(EditDefaultsOnly)
+		float AttackDamage = .1;
+
 	UFUNCTION(BlueprintCallable)
-		void Fire();
+		virtual void Fire();
 
 	UFUNCTION(BlueprintCallable)
 		void Dead();
@@ -56,44 +68,26 @@ public:
 		void SetHealth(float NewHealth);
 
 	UFUNCTION(BlueprintCallable)
+		void SetAttackRange(float NewRange);
+
+	UFUNCTION(BlueprintCallable)
+		void SetAttackDamage(float NewDamage);
+
+	UFUNCTION(BlueprintCallable)
+		void SetEnemyType(EEnemyType NewType);
+
+	UFUNCTION(BlueprintCallable)
 		void Despawn();
 
-	//variable storing current ammo amount
 	UPROPERTY(EditDefaultsOnly)
-		float CurrentAmmo = 0;
-
-	//variable storing max ammo in clip
-	UPROPERTY(EditDefaultsOnly)
-		float MaxAmmo = 0;
-
-	//variableEditDefaultsOnly storing total ammo
-	UPROPERTY()
-		float TotalAmmo = 0;
-
-	UPROPERTY(EditDefaultsOnly)
-		float DamagePerRound;
-
-	UPROPERTY(EditDefaultsOnly)
-		float RateOfFire;
-
-	UPROPERTY(EditDefaultsOnly)
-		bool bIsAutomaticWeapon = false;
-
-	UPROPERTY(EditDefaultsOnly)
-		EGunType CurrentGunType;
+		EEnemyType EnemyType;
 
 private:
 	UPROPERTY(EditDefaultsOnly)
 		USkeletalMeshComponent* GunComp;
 
-	UPROPERTY(EditAnywhere)
-		UBehaviorTree* ChaseTree;
-
 	UPROPERTY()
-		float Health = 1;
-
-	UPROPERTY()
-		float ShootRaycastRange = 500.f;
+		float AttackRaycastRange = 500.f;
 
 	UPROPERTY()
 		float PlayerRaycastRange = 100.0f;

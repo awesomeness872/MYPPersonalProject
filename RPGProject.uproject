@@ -11,7 +11,6 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"UMG",
-				"UMGEditor",
 				"AIModule"
 			]
 		}
@@ -38,7 +37,7 @@
 	"TargetPlatforms": [
 		"WindowsNoEditor",
 		"LinuxNoEditor",
-		"MacNoEditor",
-		"AllDesktop"
+		"AllDesktop",
+		"MacNoEditor"
 	]
 }

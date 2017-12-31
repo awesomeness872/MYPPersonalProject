@@ -15,6 +15,7 @@ enum class EGunType : uint8
 {
 	GT_None UMETA(DisplayName = "None"),
 	GT_MG45	UMETA(DisplayName = "MG-45"),
+	GT_LA34 UMETA(DisplayName = "LA-34"),
 };
 
 USTRUCT(BlueprintType)

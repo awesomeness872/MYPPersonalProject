@@ -7,6 +7,39 @@
 #include "EGunType.h"
 #include "PickupItem.generated.h"
 
+USTRUCT(BlueprintType)
+struct FPickupInformation {
+	GENERATED_BODY()
+
+	//variable for item name
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FName PickupName;
+
+	//variable for item description
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FName PickupDescription;
+
+	//variable for action menu text
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FName ActionText;
+
+	//variable for it item should go to inventory
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bIsInventoryPickup = true;
+
+	//variable for if it got picked up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bPickedUp = false;
+
+	//variable for if the pickup is a gun
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bIsGun = false;
+
+	//variable for item picture
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UTexture2D* PickupImage;
+};
+
 UCLASS()
 class RPGPROJECT_API APickupItem : public AActor
 {
@@ -25,64 +58,33 @@ public:
     virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void UseItem();
+		void UseItem();
 
 	UFUNCTION()
-	void UseItem_Implementation();
-
-    //variable for item mesh
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    UStaticMeshComponent* PickupMesh;
-
-    //variable for item name
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    FName PickupName;
-
-    //variable for item description
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    FName PickupDescription;
-
-    //variable for action menu text
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    FName ActionText;
-
-	//variable for it item should go to inventory
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		bool bIsInventoryPickup = true;
-
-	//variable for if it got picked up
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		bool bPickedUp = false;
-
-    UFUNCTION(BlueprintCallable)
-    FName GetActionText();
-
-    //variable for item picture
-    UPROPERTY(EditDefaultsOnly)
-    UTexture2D* PickupImage;
+		void UseItem_Implementation();
 
     UFUNCTION()
     void SetGlowEffect(bool Status);
 
-    //Returns the Texture of our Pickup
-    FORCEINLINE UTexture2D* GetPickupTexture() { return PickupImage; }
+	UPROPERTY(EditDefaultsOnly)
+		FPickupInformation PickupInfo;
 
-	UFUNCTION()
-		bool GetPickedUp();
-	//set item image
+	UPROPERTY(EditAnywhere)
+		FGunInformation GunInfo;
+
+	//variable for item mesh
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		UStaticMeshComponent* PickupMesh;
+
+	//returns struct
 	UFUNCTION(BlueprintCallable)
-		void SetPickupImage(UTexture2D* NewPickupImage);
+		FPickupInformation GetPickupInfo();
 
+	//sets PickupInfo
 	UFUNCTION(BlueprintCallable)
-		void SetPickupName(FName NewPickupName);
+		void SetPickupInfo(FPickupInformation NewInfo);
 
+	//sets status of pickedup
 	UFUNCTION(BlueprintCallable)
-		void SetPickupDescription(FName NewPickupDescription);
-
-	UFUNCTION(BlueprintCallable)
-		void SetActionText(FName NewActionText);
-
-	UFUNCTION()
 		void SetPickedUp(bool NewPickedUp);
-	
 };

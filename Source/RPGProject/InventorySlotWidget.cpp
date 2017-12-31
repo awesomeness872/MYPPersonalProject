@@ -6,7 +6,7 @@
 
 void UInventorySlotWidget::SetItemTexture(APickupItem *Item){
     //if item is calid update widget texture, if not assign a nullptr
-    (Item) ? ItemImage = Item->GetPickupTexture() : ItemImage = nullptr;
+    (Item) ? ItemImage = Item->GetPickupInfo().PickupImage : ItemImage = nullptr;
 }
 
 void UInventorySlotWidget::SetEquippedItem(){
@@ -20,5 +20,5 @@ void UInventorySlotWidget::SetEquippedItem(){
 void UInventorySlotWidget::SetActionText(APickupItem *Item){
     //if item is calid update widget texture, if not assign a nullptr
     FName none;
-    (Item) ? ActionText = Item->GetActionText() : ActionText = none;
+    (Item) ? ActionText = Item->GetPickupInfo().ActionText : ActionText = none;
 }

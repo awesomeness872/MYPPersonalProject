@@ -34,38 +34,20 @@ void APickupItem::Tick(float DeltaTime)
 //sets glow effect around item
 void APickupItem::SetGlowEffect(bool Status)
 {
-    PickupMesh->SetRenderCustomDepth(Status);
 }
 
-FName APickupItem::GetActionText(){
-    return ActionText;
+void APickupItem::UseItem_Implementation() {}
+
+FPickupInformation APickupItem::GetPickupInfo() {
+	return PickupInfo;
 }
 
-bool APickupItem::GetPickedUp() {
-	return bPickedUp;
-}
-void APickupItem::UseItem_Implementation()
-{
-}
-
-void APickupItem::SetPickupImage(UTexture2D* NewPickupImage) {
-	PickupImage = NewPickupImage;
-}
-
-void APickupItem::SetPickupName(FName NewPickupName) {
-	PickupName = NewPickupName;
-}
-
-void APickupItem::SetPickupDescription(FName NewPickupDescription) {
-	PickupDescription = NewPickupDescription;
-}
-
-void APickupItem::SetActionText(FName NewActionText) {
-	ActionText = NewActionText;
+void APickupItem::SetPickupInfo(FPickupInformation NewInfo) {
+	PickupInfo = NewInfo;
 }
 
 void APickupItem::SetPickedUp(bool NewPickedUp) {
-	bPickedUp = NewPickedUp;
+	PickupInfo.bPickedUp = NewPickedUp;
 	if (NewPickedUp) {
 		PickupMesh->SetEnableGravity(false);
 		SetActorEnableCollision(false);

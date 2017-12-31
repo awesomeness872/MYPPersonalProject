@@ -41,6 +41,9 @@ void AMainCharacter::BeginPlay()
     //initialize inventory
     Inventory.SetNum(MAX_INVENTORY_ITEMS);
 
+	//initialize GunInventory
+	GunInventory.SetNum(MAX_GUNINVENTORY_ITEMS);
+
 	//set GunComp to socket
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 
@@ -125,6 +128,7 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AMainCharacter::PickupItem);
     PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &AMainCharacter::DropEquippedItem);
     PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &AMainCharacter::HandleInventoryInput);
+	PlayerInputComponent->BindAction("GunInventory", IE_Pressed, this, &AMainCharacter::HandleGunInventoryInput);
 	//input for pause menu
 	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainCharacter::PauseMenu);
 	//button to save game for testing
@@ -443,7 +447,7 @@ void AMainCharacter::Melee() {
 		//raycast to see if something that can be hit is in range
 		//calulate start and end location
 		FVector StartLocation = CameraComp->GetComponentLocation();
-		FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * 500);
+		FVector EndLocation = StartLocation + (CameraComp->GetForwardVector() * MeleeRaycastRange);
 
 		FHitResult RaycastHit;
 
@@ -578,11 +582,26 @@ void AMainCharacter::PickupItem(){
 	if (LastSeenItem) {
 		//find first available slot
 		int32 AvailableSlot = Inventory.Find(nullptr);
+		int32 AvailableGunSlot = GunInventory.Find(nullptr);
 
 		//check is item has image, if not dont add and activate use, if it does add to inventory
-		if (!LastSeenItem->bIsInventoryPickup) {
+		if (!LastSeenItem->PickupInfo.bIsInventoryPickup) {
 			LastSeenItem->UseItem();
 			LastSeenItem->SetPickedUp(true);
+		}
+		//check if item is a gun
+		if (LastSeenItem->PickupInfo.bIsGun) {
+			if (AvailableGunSlot != INDEX_NONE) {
+				GunInventory[AvailableGunSlot] = LastSeenItem;
+				LastSeenItem->SetPickedUp(true);
+				if (GEngine) {
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Gun added"));
+				}
+			}
+
+			if (bIsGunInventoryOpen) {
+				GunInventoryRef->Show();
+			}
 		}
 		else if (AvailableSlot != INDEX_NONE) {
 			//add item to first valid slot
@@ -621,12 +640,25 @@ void AMainCharacter::PauseMenu() {
 }
 //called when inventory is pressed
 void AMainCharacter::HandleInventoryInput(){
-    if (bIsInventoryOpen){
-        bIsInventoryOpen = false;
-    }
-    else bIsInventoryOpen = true;
-    AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
-    if (Con) Con->HandleInventoryInput();
+	if (!bIsGunInventoryOpen) {
+		if (bIsInventoryOpen) {
+			bIsInventoryOpen = false;
+		}
+		else bIsInventoryOpen = true;
+		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+		if (Con) Con->HandleInventoryInput();
+	}
+}
+
+void AMainCharacter::HandleGunInventoryInput() {
+	if (!bIsInventoryOpen) {
+		if (bIsGunInventoryOpen) {
+			bIsGunInventoryOpen = false;
+		}
+		else bIsGunInventoryOpen = true;
+		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+		if (Con) Con->HandleGunInventoryInput();
+	}
 }
 
 void AMainCharacter::SetEquippedItem(UTexture2D * Texture){
@@ -637,7 +669,7 @@ void AMainCharacter::SetEquippedItem(UTexture2D * Texture){
         inside our Inventory. Once we find an item that has the same image as the
         Texture image we're passing as a parameter we mark that item as CurrentlyEquipped.*/
         for (auto It = Inventory.CreateIterator(); It; It++){
-            if ((*It) && (*It)->GetPickupTexture() && (*It)->GetPickupTexture()->HasSameSourceArt(Texture)){
+            if ((*It) && (*It)->GetPickupInfo().PickupImage && (*It)->GetPickupInfo().PickupImage->HasSameSourceArt(Texture)){
                 CurrentlyEquippedItem = *It;
                 if (GEngine){
                     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("New equipped item"));
@@ -645,6 +677,15 @@ void AMainCharacter::SetEquippedItem(UTexture2D * Texture){
                 break;
             }
         }
+		for (auto It = GunInventory.CreateIterator(); It; It++) {
+			if ((*It) && (*It)->GetPickupInfo().PickupImage && (*It)->GetPickupInfo().PickupImage->HasSameSourceArt(Texture)) {
+				CurrentlyEquippedItem = *It;
+				if (GEngine) {
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("New equipped item"));
+				}
+				break;
+			}
+		}
     }
     else if (GEngine){
         GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Empty slot"));
@@ -662,7 +703,6 @@ void AMainCharacter::DropEquippedItem(){
 
 			FHitResult DropItem;
 
-			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Blue, false, 0.5f, (uint8)'\000', 1.0f);
 			GetWorld()->LineTraceSingleByChannel(DropItem, StartLocation, EndLocation, ECC_Visibility);
 
 			//the location of drop
@@ -681,9 +721,13 @@ void AMainCharacter::DropEquippedItem(){
 
 			CurrentlyEquippedItem->PickupMesh->SetVisibility(true);
 
-
 			//unreference item just placed
-			Inventory[IndexOfItem] = nullptr;
+			if (CurrentlyEquippedItem->GetPickupInfo().bIsGun) {
+				GunInventory[IndexOfItem] = nullptr;
+			}
+			else {
+				Inventory[IndexOfItem] = nullptr;
+			}
         }
     }
 }
@@ -695,73 +739,75 @@ void AMainCharacter::ItemUsed() {
 		if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
 			//destroy item in world
 			CurrentlyEquippedItem->Destroy();
-
 			//unreference item just used
 			Inventory[IndexOfItem] = nullptr;
+		}
+		if (GunInventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
+			//unreference item just used
+			GunInventory[IndexOfItem] = nullptr;
+			//set as CurrentGunActor
+			CurrentGunActor = CurrentlyEquippedItem;
 		}
 	}
 }
 
 //called when switching weapons
-void AMainCharacter::SwitchGun(FGunInformation NewGun){
+void AMainCharacter::SwitchGun(FGunInformation NewGun) {
+	int32 AvailableSlot = GunInventory.Find(nullptr);
+	//if current gun is not in inventory set it in the first available slot
+	/*if (GunInventory.Contains(CurrentGunActor)) {
+		CurrentGunActor->GunInfo = CurrentGun;
+		GunInventory[AvailableSlot] = CurrentGunActor;
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Gun returned"));
+		}
+	}*/
+	//if CurrentGunActor is set, set its guninfo to be the players and them readd to inventory
+	if (CurrentGunActor != nullptr) {
+		CurrentGunActor->GunInfo = CurrentGun;
+		GunInventory[AvailableSlot] = CurrentGunActor;
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Gun returned"));
+		}
+	}
+	//determine which gun was last held and store variables
 	switch (CurrentGun.Type) {
-		case EGunType::GT_None:
-			break;
-
-		case EGunType::GT_MG45:
-			CurrentAmmo_MG45 = CurrentGun.CurrentAmmo;
-
-			TotalAmmo_MG45 = CurrentGun.TotalAmmo;
-
-			break;
-
-		default :
-			if (GEngine) {
-				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid current gun"));
-			}
+	//if old gun is LA-34
+	case EGunType::GT_LA34:
+		LA_34 = CurrentGun;
+		break;
+	//if old gun was a MG-45
+	case EGunType::GT_MG45:
+		MG_45 = CurrentGun;
+		break;
+	//if no current gun
+	default:
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("No current gun, doesn't matter though"));
+		}
 	}
-
-	//check what kind of gun is getting equipped and store its ammo values
-	switch (NewGun.Type) {
-		case EGunType::GT_None:
-			CurrentGun.CurrentAmmo = 0;
-
-			CurrentGun.TotalAmmo = 0;
-
-			CurrentGun.MaxAmmo = 0;
-
-			CurrentGun.Type = EGunType::GT_None;
-			break;
-
-		case EGunType::GT_MG45:
-			CurrentGun.CurrentAmmo = CurrentAmmo_MG45;
-
-			CurrentGun.TotalAmmo = TotalAmmo_MG45;
-
-			CurrentGun.Type = EGunType::GT_MG45;
-			break; 
-
-		default:
-			if (GEngine) {
-				GEngine->AddOnScreenDebugMessage(1, 0.5f, FColor::Red, TEXT("Invalid new gun"));
-			}
-	}
-
-	//change variables based on new variables
-	CurrentGun.MaxAmmo = NewGun.MaxAmmo;
-	CurrentGun.DamagePerRound = NewGun.DamagePerRound;
-	CurrentGun.RateOfFire = NewGun.RateOfFire;
-	CurrentGun.bIsAutomatic = NewGun.bIsAutomatic;
-	
-	//change gun mesh
+	//set model as gun comp
 	GunComp->SetSkeletalMesh(NewGun.GunSkMesh);
-
-	//set location, rotation, and scale
-	GunComp->SetRelativeLocationAndRotation(NewGun.GunOffset.GetLocation(), NewGun.GunOffset.GetRotation());
-	GunComp->SetRelativeScale3D(NewGun.GunOffset.GetScale3D());
-
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Cyan, TEXT("Gun Switched"));
+	GunComp->SetRelativeTransform(NewGun.GunOffset);
+	//set NewGun as CurrentGun
+	CurrentGun = NewGun;
+	//determine what type of gun NewGun is and add previous ammo to it
+	switch (NewGun.Type) {
+		//if NewGun is an LA-34
+	case EGunType::GT_LA34:
+		CurrentGun.CurrentAmmo += LA_34.CurrentAmmo;
+		CurrentGun.TotalAmmo += LA_34.TotalAmmo;
+		break;
+		//if NewGun is an MG-45
+	case EGunType::GT_MG45:
+		CurrentGun.CurrentAmmo += MG_45.CurrentAmmo;
+		CurrentGun.TotalAmmo += MG_45.TotalAmmo;
+		break;
+		//if NewGun is Invalid
+	default:
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, TEXT("Invalid new gun"));
+		}
 	}
 }
 
@@ -774,9 +820,10 @@ void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
 		break;
 
 	case EGunType::GT_MG45:
-		TotalAmmo_MG45 = TotalAmmo_MG45 + AmmoToAdd;
-
+		MG_45.TotalAmmo = MG_45.TotalAmmo + AmmoToAdd;
 		break;
+	case EGunType::GT_LA34:
+		LA_34.TotalAmmo = LA_34.TotalAmmo + AmmoToAdd;
 	}
 }
 
@@ -823,7 +870,7 @@ FName AMainCharacter::GetInteractionAction() {
 //called manually, if LastSeenItem is valid returns value of LastSeenIten->PickupName, if not returns empty
 FName AMainCharacter::GetLSIName(){
     if (LastSeenItem){
-        return LastSeenItem->PickupName;
+        return LastSeenItem->PickupInfo.PickupName;
     }
     else{
         FName none;
@@ -834,7 +881,7 @@ FName AMainCharacter::GetLSIName(){
 //called manually, if LastSeenItem is valid returns value of LastSeenIten->PickupDescription, if not returns empty
 FName AMainCharacter::GetLSIDesc(){
     if (LastSeenItem){
-        return LastSeenItem->PickupDescription;
+        return LastSeenItem->PickupInfo.PickupDescription;
     }
     else{
         FName none;
@@ -844,7 +891,7 @@ FName AMainCharacter::GetLSIDesc(){
 
 bool AMainCharacter::GetLSIbIsInventoryPickup() {
 	if (LastSeenItem) {
-		return LastSeenItem->bIsInventoryPickup;
+		return LastSeenItem->PickupInfo.bIsInventoryPickup;
 	}
 	else {
 		return true;
@@ -854,7 +901,7 @@ bool AMainCharacter::GetLSIbIsInventoryPickup() {
 //called manually, if LastSeenItem is valid returns value of LastSeenIten->PickupImage, if not returns empty
 UTexture2D* AMainCharacter::GetLSIImage(){
     if (LastSeenItem){
-        return LastSeenItem->PickupImage;
+        return LastSeenItem->PickupInfo.PickupImage;
     }
     else {
         return nullptr;
@@ -882,6 +929,9 @@ bool AMainCharacter::GetIsInventoryOpen() {
 	return bIsInventoryOpen;
 }
 
+bool AMainCharacter::GetIsGunInventoryOpen() {
+	return bIsGunInventoryOpen;
+}
 USkeletalMeshComponent* AMainCharacter::GetGunComp() {
 	return GunComp;
 }
@@ -908,6 +958,10 @@ bool AMainCharacter::GetIsLookingAtInteractable() {
 
 TArray<APickupItem*> AMainCharacter::GetInventory() {
 	return Inventory;
+}
+
+TArray<APickupItem*> AMainCharacter::GetGunInventory() {
+	return GunInventory;
 }
 
 EPerspective AMainCharacter::GetPerspective() {
@@ -963,11 +1017,14 @@ void AMainCharacter::SaveGame() {
 	SaveGameInstance->PlayerStamina = Stamina;
 	//save player weapon information
 	SaveGameInstance->PlayerCurrentGun = CurrentGun;
+	SaveGameInstance->PlayerCurrentGunActor = CurrentGunActor;
+	SaveGameInstance->PlayerGunInventory = GunInventory;
 	//save player perspective
 	SaveGameInstance->PlayerPerspective = Perspective;
 	//save variables in enemy character
 	for (TActorIterator<AEnemyCharacter> EnemyCharacterItr(GetWorld()); EnemyCharacterItr; ++EnemyCharacterItr) {
 		AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(*EnemyCharacterItr);
+		SaveGameInstance->EnemyType.Add(EnemyRef->EnemyType);
 		SaveGameInstance->EnemyHealths.Add(EnemyRef->GetHealth());
 		SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
 		SaveGameInstance->EnemyDead.Add(EnemyRef->GetDead());
@@ -976,7 +1033,8 @@ void AMainCharacter::SaveGame() {
 	//save pickupitems in game
 	for (TActorIterator<APickupItem> PickupItr(GetWorld()); PickupItr; ++PickupItr){
 		APickupItem* PickupRef = Cast<APickupItem>(*PickupItr);
-		SaveGameInstance->PickupStatus.Add(PickupRef->GetPickedUp());
+		SaveGameInstance->PickupInfo.Add(PickupRef->GetPickupInfo());
+		SaveGameInstance->PickupMesh.Add(PickupRef->PickupMesh);
 		SaveGameInstance->PickupLocation.Add(PickupRef->GetActorTransform());
 		SaveGameInstance->PickupClass.Add(PickupRef);
 	}	
@@ -1007,25 +1065,32 @@ void AMainCharacter::LoadGame() {
 		Stamina = LoadGameInstance->PlayerStamina;
 		//load player gun information
 		CurrentGun = LoadGameInstance->PlayerCurrentGun; 
+		CurrentGunActor = LoadGameInstance->PlayerCurrentGunActor;
+		GunInventory = LoadGameInstance->PlayerGunInventory;
 		//load player perspective
 		SetPerspective(LoadGameInstance->PlayerPerspective);
 		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
-			AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
-			EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
-			EnemyRef->SetActorLocationAndRotation(LoadGameInstance->EnemyTransform[i].GetLocation(), LoadGameInstance->EnemyTransform[i].GetRotation());
-			//if enemy is saved as dead, delete from game
-			if (LoadGameInstance->EnemyDead[i]) {
-				EnemyRef->Despawn();
+			if (LoadGameInstance->EnemyClass[i]->IsActorInitialized()) {
+				AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
+				EnemyRef->EnemyType = LoadGameInstance->EnemyType[i];
+				EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
+				EnemyRef->SetActorLocationAndRotation(LoadGameInstance->EnemyTransform[i].GetLocation(), LoadGameInstance->EnemyTransform[i].GetRotation());
+				//if enemy is saved as dead, delete from game
+				if (LoadGameInstance->EnemyDead[i]) {
+					EnemyRef->Despawn();
+				}
 			}
-			FString HealthText = FString::SanitizeFloat(LoadGameInstance->EnemyHealths[i]);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, *HealthText);
 		}
 		//load variables for pickups
 		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
-			APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
-			PickupRef->SetPickedUp(LoadGameInstance->PickupStatus[i]);
-			PickupRef->SetActorTransform(LoadGameInstance->PickupLocation[i]);
+			if (LoadGameInstance->PickupClass[i]->IsActorInitialized()) {
+				APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
+				PickupRef->SetPickupInfo(LoadGameInstance->PickupInfo[i]);
+				PickupRef->SetPickedUp(LoadGameInstance->PickupInfo[i].bPickedUp);
+				PickupRef->PickupMesh = LoadGameInstance->PickupMesh[i];
+				PickupRef->SetActorTransform(LoadGameInstance->PickupLocation[i]);
+			}
 		}
 		if (GEngine) {
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded"));

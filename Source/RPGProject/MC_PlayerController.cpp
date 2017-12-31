@@ -28,6 +28,9 @@ void AMC_PlayerController::Possess(APawn *InPawn){
         //create inventory widget based on blueprint reference
         InventoryWidgetRef = CreateWidget<UInventoryWidget>(this, InventoryWidgetBP);
     }
+	if (GunInventoryWidgetBP) {
+		GunInventoryWidgetRef = CreateWidget<UInventoryWidget>(this, GunInventoryWidgetBP);
+	}
 
     //inital value
     bIsInventoryOpen = false;
@@ -70,6 +73,45 @@ void AMC_PlayerController::HandleInventoryInput(){
         }
     }
 }
+
+void AMC_PlayerController::HandleGunInventoryInput() {
+	AMainCharacter* Char = Cast<AMainCharacter>(GetPawn());
+
+	if (GunInventoryWidgetRef) {
+		if (bIsGunInventoryOpen) {
+			//mark the inventory as closed
+			bIsGunInventoryOpen = false;
+
+			//hide cursor
+			bShowMouseCursor = false;
+
+			//tell game that we want to register inputs for our game and not for our UI
+			FInputModeGameOnly InputMode;
+			SetInputMode(InputMode);
+
+			//remove from viewport
+			GunInventoryWidgetRef->RemoveFromViewport();
+		}
+		else {
+			//mark inventory as open
+			bIsGunInventoryOpen = true;
+
+			//repopulate ItemsArray
+			GunInventoryWidgetRef->ItemsArray = Char->GetGunInventory();
+
+			//show inventory
+			GunInventoryWidgetRef->Show();
+
+			//show cursor
+			bShowMouseCursor = true;
+
+			//tell game that we want register inputs in game and UI
+			FInputModeGameAndUI InputMode;
+			SetInputMode(InputMode);
+		}
+	}
+}
+
 
 void AMC_PlayerController::PauseGame() {
 	//check if asset is assigned in blueprint

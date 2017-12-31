@@ -49,7 +49,7 @@ void AEnemyCharacter::Fire() {
 		//raycast to see if something that can be hit is in range
 		//calulate start and end location
 		FVector StartLocation = GetMesh()->GetBoneLocation(FName("thumb_03_l"));
-		FVector EndLocation = StartLocation + (GunComp->GetForwardVector() * ShootRaycastRange);
+		FVector EndLocation = StartLocation + (GunComp->GetForwardVector() * AttackRaycastRange);
 
 		FHitResult RaycastHit;
 
@@ -60,13 +60,9 @@ void AEnemyCharacter::Fire() {
 		//raycast
 		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
 
-		//draw line
-		DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.F, (uint8)'\000', 1.0F);
-
 		if (RaycastHit.GetActor() != nullptr) {
 			AMainCharacter* MC = Cast <AMainCharacter>(RaycastHit.GetActor());
-			MC->Damage(.1f);
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Firing"));
+			MC->Damage(AttackDamage);
 		}
 	}
 }
@@ -114,4 +110,16 @@ bool AEnemyCharacter::GetDead() {
 
 void AEnemyCharacter::SetDead(bool NewDead) {
 	bIsDeadCalled = NewDead;
+}
+
+void AEnemyCharacter::SetAttackDamage(float NewDamage) {
+	AttackDamage = NewDamage;
+}
+
+void AEnemyCharacter::SetAttackRange(float NewRange) {
+	AttackRaycastRange = NewRange;
+}
+
+void AEnemyCharacter::SetEnemyType(EEnemyType NewType) {
+	EnemyType = NewType;
 }

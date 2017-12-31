@@ -43,6 +43,12 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		FGunInformation PlayerCurrentGun;
 
+	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
+		APickupItem* PlayerCurrentGunActor;
+
+	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
+		TArray<APickupItem*> PlayerGunInventory;
+
 	//player location
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		FVector PlayerLocation = FVector(-860.f, -100.f, 602.f);
@@ -50,6 +56,10 @@ public:
 	//player perspective
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		EPerspective PlayerPerspective;
+
+	//enemy type
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<EEnemyType> EnemyType;
 
 	//enemy health
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
@@ -62,13 +72,18 @@ public:
 	//enemy dead status
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<bool> EnemyDead;
+
 	//enemy class
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<AEnemyCharacter*> EnemyClass;
 
 	//pickup status
 	UPROPERTY(VisibleAnywhere, Category = PickupItem)
-		TArray<bool> PickupStatus;
+		TArray<FPickupInformation> PickupInfo;
+
+	//pickup mesh
+	UPROPERTY(VisibleAnywhere, Category = PickupItem)
+		TArray<UStaticMeshComponent*> PickupMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = PickupItem)
 		TArray<FTransform> PickupLocation;

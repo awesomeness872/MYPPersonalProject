@@ -12,6 +12,7 @@
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
+#define MAX_GUNINVENTORY_ITEMS 8
 
 UCLASS()
 class RPGPROJECT_API AMainCharacter : public ACharacter
@@ -22,14 +23,14 @@ public:
 	// Sets default values for this character's properties
 	AMainCharacter();
 
-//set of variables for storing gun ammo
+//variables for stored guns
 private:
-	//variables for MG-45
 	UPROPERTY()
-		float CurrentAmmo_MG45;
+		FGunInformation MG_45;
 
 	UPROPERTY()
-		float TotalAmmo_MG45;
+		FGunInformation LA_34;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -47,6 +48,10 @@ protected:
 	//The range of the raycast for target
 	UPROPERTY(EditAnywhere)
 	float ShootRaycastRange = 10000.f;
+
+	//the melee range
+	UPROPERTY(EditDefaultsOnly)
+		float MeleeRaycastRange = 200.f;
 
 private:
 
@@ -141,9 +146,16 @@ private:
     UPROPERTY()
     bool bIsInventoryOpen = false;
 
+	UPROPERTY()
+		bool bIsGunInventoryOpen = false;
+
     //The actual Inventory
     UPROPERTY(VisibleAnywhere)
     TArray<APickupItem*> Inventory;
+
+	//Gun inventory
+	UPROPERTY(VisibleAnywhere)
+		TArray<APickupItem*> GunInventory;
 
 	//array for pickup status to be saved
 	TArray<bool> PickupStatus;
@@ -231,6 +243,9 @@ private:
 	UInventoryWidget* InventoryRef;
 
 	UPROPERTY()
+		UInventoryWidget* GunInventoryRef;
+
+	UPROPERTY()
 	FTimerHandle ReloadTimer;
 
 	UPROPERTY()
@@ -240,6 +255,9 @@ private:
 		EPerspective Perspective = EPerspective::P_3P;
 
 public:	 
+	UPROPERTY(BlueprintReadWrite)
+		APickupItem* CurrentGunActor;
+
     UFUNCTION(BlueprintCallable)
     bool GetIsAimingDownSights();
 
@@ -285,6 +303,9 @@ public:
 	bool GetIsInventoryOpen();
 
 	UFUNCTION(BlueprintCallable)
+		bool GetIsGunInventoryOpen();
+
+	UFUNCTION(BlueprintCallable)
 	bool GetIsCrouching();
 
 	UFUNCTION(BlueprintCallable)
@@ -304,6 +325,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		TArray<APickupItem*> GetInventory();
+
+	UFUNCTION(BlueprintCallable)
+		TArray<APickupItem*> GetGunInventory();
 
 	UFUNCTION(BlueprintCallable)
 		EPerspective GetPerspective();
@@ -329,6 +353,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleInventoryInput();
+
+	UFUNCTION(BlueprintCallable)
+		void HandleGunInventoryInput();
 
 	UFUNCTION(BlueprintCallable)
 	void ItemUsed();

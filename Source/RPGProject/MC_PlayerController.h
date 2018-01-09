@@ -23,10 +23,15 @@ private:
 	//inventorywidget reference
 	UInventoryWidget* GunInventoryWidgetRef;
 
-    //true if inventory is open, false if otherwise
-    bool bIsInventoryOpen;
+	//armorinventorywidget reference
+	UInventoryWidget* ArmorInventoryWidgetRef;
 
-	bool bIsGunInventoryOpen;
+    //true if inventory is open, false if otherwise
+    bool bIsInventoryOpen = false;
+
+	bool bIsGunInventoryOpen = false;
+
+	bool bIsArmorInventoryOpen = false;
 
 private:
     //inventorywidget blueprint reference
@@ -36,6 +41,10 @@ private:
 	//guninventorywidget blueprint reference
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<UInventoryWidget> GunInventoryWidgetBP;
+
+	//armorinventorywidget blueprint reference
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<UInventoryWidget> ArmorInventoryWidgetBP;
 public:
 
     //properties for calling UMG HUD
@@ -65,6 +74,9 @@ public:
 
 	//opens or closes the inventory
 	void HandleGunInventoryInput();
+
+	//opens or closes the armor inventory
+	void HandleArmorInventoryInput();
 
     virtual void Possess(APawn* InPawn) override;
 

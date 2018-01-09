@@ -5,8 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "EGunType.h"
+#include "EArmorType.h"
 #include "PickupItem.generated.h"
 
+UENUM(BlueprintType)
+enum class EPickupType : uint8
+{
+	PT_Inventory UMETA(Displayname = "Inventory"),
+	PT_Gun UMETA(DisplayName = "Gun"),
+	PT_Armor UMETA(DisplayName = "Armor"),
+	PT_UseOnPick UMETA(DisplayName = "Use on Pickup")
+};
 USTRUCT(BlueprintType)
 struct FPickupInformation {
 	GENERATED_BODY()
@@ -25,15 +34,11 @@ struct FPickupInformation {
 
 	//variable for it item should go to inventory
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bIsInventoryPickup = true;
+		EPickupType PickupType;
 
 	//variable for if it got picked up
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bPickedUp = false;
-
-	//variable for if the pickup is a gun
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bIsGun = false;
 
 	//variable for item picture
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -71,6 +76,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		FGunInformation GunInfo;
+
+	UPROPERTY(EditAnywhere)
+		FArmorInformation ArmorInfo;
 
 	//variable for item mesh
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

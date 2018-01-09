@@ -44,6 +44,9 @@ void AMainCharacter::BeginPlay()
 	//initialize GunInventory
 	GunInventory.SetNum(MAX_GUNINVENTORY_ITEMS);
 
+	//initialize ArmorInventory
+	ArmorInventory.SetNum(MAX_ARMORINVENTORY_ITEMS);
+
 	//set GunComp to socket
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
 
@@ -129,10 +132,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     PlayerInputComponent->BindAction("Drop", IE_Pressed, this, &AMainCharacter::DropEquippedItem);
     PlayerInputComponent->BindAction("Inventory", IE_Pressed, this, &AMainCharacter::HandleInventoryInput);
 	PlayerInputComponent->BindAction("GunInventory", IE_Pressed, this, &AMainCharacter::HandleGunInventoryInput);
+	PlayerInputComponent->BindAction("ArmorInventory", IE_Pressed, this, &AMainCharacter::HandleArmorInventoryInput);
 	//input for pause menu
 	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &AMainCharacter::PauseMenu);
-	//button to save game for testing
-	PlayerInputComponent->BindKey("NumPadOne", IE_Pressed, this, &AMainCharacter::SaveGame);
 }
 
 //called when W or S is pressed, adds directional input
@@ -583,14 +585,15 @@ void AMainCharacter::PickupItem(){
 		//find first available slot
 		int32 AvailableSlot = Inventory.Find(nullptr);
 		int32 AvailableGunSlot = GunInventory.Find(nullptr);
+		int32 AvailableArmorSlot = ArmorInventory.Find(nullptr);
 
 		//check is item has image, if not dont add and activate use, if it does add to inventory
-		if (!LastSeenItem->PickupInfo.bIsInventoryPickup) {
+		if (LastSeenItem->PickupInfo.PickupType == EPickupType::PT_UseOnPick) {
 			LastSeenItem->UseItem();
 			LastSeenItem->SetPickedUp(true);
 		}
 		//check if item is a gun
-		if (LastSeenItem->PickupInfo.bIsGun) {
+		if (LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Gun) {
 			if (AvailableGunSlot != INDEX_NONE) {
 				GunInventory[AvailableGunSlot] = LastSeenItem;
 				LastSeenItem->SetPickedUp(true);
@@ -603,6 +606,163 @@ void AMainCharacter::PickupItem(){
 				GunInventoryRef->Show();
 			}
 		}
+		//add armor to inventory
+		if (LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Armor) {
+			if (AvailableGunSlot != INDEX_NONE) {
+				//determine how many of each armor types are in the inventory
+				int BootCount = 0;
+				int ChestCount = 0;
+				int HelmetCount = 0;
+				int PantsCount = 0;
+				for (int i = 0; i < ArmorInventory.Num(); i++) {
+					switch (LastSeenItem->ArmorInfo.ArmorType) {
+					case EArmorType::AT_Boots:
+						BootCount++;
+						break;
+					case EArmorType::AT_ChestPiece:
+						ChestCount++;
+						break;
+					case EArmorType::AT_Helmet:
+						HelmetCount++;
+						break;
+					case EArmorType::AT_Pants:
+						PantsCount++;
+						break;
+					default: 
+						if (GEngine) {
+							GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Invalid Type"));
+						}
+					}
+				}
+				//add to inventory
+				switch (LastSeenItem->ArmorInfo.ArmorType) {
+				//uses slots 0-4
+				case EArmorType::AT_Boots:
+					if (BootCount < 5) {
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Boots Full"));
+					}
+					else {
+						if (ArmorInventory[0] == nullptr) {
+							ArmorInventory[0] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[1] == nullptr) {
+							ArmorInventory[1] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[2] == nullptr) {
+							ArmorInventory[2] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[3] == nullptr) {
+							ArmorInventory[3] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[4] == nullptr) {
+							ArmorInventory[4] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Boots Full"));
+					}
+					break;
+				//uses slots 5-9
+				case EArmorType::AT_ChestPiece:
+					if (ChestCount < 5) {
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Chest Full"));
+					}
+					else {
+						if (ArmorInventory[5] == nullptr) {
+							ArmorInventory[5] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[6] == nullptr) {
+							ArmorInventory[6] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[7] == nullptr) {
+							ArmorInventory[7] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[8] == nullptr) {
+							ArmorInventory[8] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[9] == nullptr) {
+							ArmorInventory[9] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Chest Full"));
+					}
+					break;
+					//uses slots 10-14
+				case EArmorType::AT_Helmet:
+					if (HelmetCount < 5) {
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Helmet Full"));
+					}
+					else {
+						if (ArmorInventory[10] == nullptr) {
+							ArmorInventory[10] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[11] == nullptr) {
+							ArmorInventory[11] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[12] == nullptr) {
+							ArmorInventory[12] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[13] == nullptr) {
+							ArmorInventory[13] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[14] == nullptr) {
+							ArmorInventory[14] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Chest Full"));
+					}
+					break;
+					//uses slots 15-19
+				case EArmorType::AT_Pants:
+					if (PantsCount < 5) {
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Pants Full"));
+					}
+					else {
+						if (ArmorInventory[15] == nullptr) {
+							ArmorInventory[15] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[16] == nullptr) {
+							ArmorInventory[16] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[17] == nullptr) {
+							ArmorInventory[17] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[18] == nullptr) {
+							ArmorInventory[18] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else if (ArmorInventory[19] == nullptr) {
+							ArmorInventory[19] = LastSeenItem;
+							LastSeenItem->SetPickedUp(true);
+						}
+						else GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Chest Full"));
+					}
+					break;
+				default:
+					if (GEngine) {
+						GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Invalid Type"));
+					}
+				}
+			}
+			if (bIsArmorInventoryOpen) {
+				ArmorInventoryRef->Show();
+			}
+		}
+
 		else if (AvailableSlot != INDEX_NONE) {
 			//add item to first valid slot
 			Inventory[AvailableSlot] = LastSeenItem;
@@ -640,7 +800,7 @@ void AMainCharacter::PauseMenu() {
 }
 //called when inventory is pressed
 void AMainCharacter::HandleInventoryInput(){
-	if (!bIsGunInventoryOpen) {
+	if (!bIsGunInventoryOpen && !bIsArmorInventoryOpen) {
 		if (bIsInventoryOpen) {
 			bIsInventoryOpen = false;
 		}
@@ -651,13 +811,24 @@ void AMainCharacter::HandleInventoryInput(){
 }
 
 void AMainCharacter::HandleGunInventoryInput() {
-	if (!bIsInventoryOpen) {
+	if (!bIsInventoryOpen && !bIsArmorInventoryOpen) {
 		if (bIsGunInventoryOpen) {
 			bIsGunInventoryOpen = false;
 		}
 		else bIsGunInventoryOpen = true;
 		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
 		if (Con) Con->HandleGunInventoryInput();
+	}
+}
+
+void AMainCharacter::HandleArmorInventoryInput() {
+	if (!bIsInventoryOpen && !bIsGunInventoryOpen) {
+		if (bIsArmorInventoryOpen) {
+			bIsArmorInventoryOpen = false;
+		}
+		else bIsArmorInventoryOpen = true;
+		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+		if (Con) Con->HandleArmorInventoryInput();
 	}
 }
 
@@ -684,6 +855,14 @@ void AMainCharacter::SetEquippedItem(UTexture2D * Texture){
 					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("New equipped item"));
 				}
 				break;
+			}
+		}
+		for (auto It = ArmorInventory.CreateIterator(); It; It++) {
+			if ((*It) && (*It)->GetPickupInfo().PickupImage && (*It)->GetPickupInfo().PickupImage->HasSameSourceArt(Texture)) {
+				CurrentlyEquippedItem = *It;
+				if (GEngine) {
+					GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("New equipped item"));
+				}
 			}
 		}
     }
@@ -722,8 +901,11 @@ void AMainCharacter::DropEquippedItem(){
 			CurrentlyEquippedItem->PickupMesh->SetVisibility(true);
 
 			//unreference item just placed
-			if (CurrentlyEquippedItem->GetPickupInfo().bIsGun) {
+			if (CurrentlyEquippedItem->GetPickupInfo().PickupType == EPickupType::PT_Gun) {
 				GunInventory[IndexOfItem] = nullptr;
+			}
+			else if (CurrentlyEquippedItem->GetPickupInfo().PickupType == EPickupType::PT_Armor) {
+				ArmorInventory[IndexOfItem] = nullptr;
 			}
 			else {
 				Inventory[IndexOfItem] = nullptr;
@@ -748,20 +930,16 @@ void AMainCharacter::ItemUsed() {
 			//set as CurrentGunActor
 			CurrentGunActor = CurrentlyEquippedItem;
 		}
+		if (ArmorInventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
+			//unreference
+			ArmorInventory[IndexOfItem] = nullptr;
+		}
 	}
 }
 
 //called when switching weapons
 void AMainCharacter::SwitchGun(FGunInformation NewGun) {
 	int32 AvailableSlot = GunInventory.Find(nullptr);
-	//if current gun is not in inventory set it in the first available slot
-	/*if (GunInventory.Contains(CurrentGunActor)) {
-		CurrentGunActor->GunInfo = CurrentGun;
-		GunInventory[AvailableSlot] = CurrentGunActor;
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, TEXT("Gun returned"));
-		}
-	}*/
 	//if CurrentGunActor is set, set its guninfo to be the players and them readd to inventory
 	if (CurrentGunActor != nullptr) {
 		CurrentGunActor->GunInfo = CurrentGun;
@@ -891,7 +1069,7 @@ FName AMainCharacter::GetLSIDesc(){
 
 bool AMainCharacter::GetLSIbIsInventoryPickup() {
 	if (LastSeenItem) {
-		return LastSeenItem->PickupInfo.bIsInventoryPickup;
+		return LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Inventory;
 	}
 	else {
 		return true;
@@ -932,6 +1110,10 @@ bool AMainCharacter::GetIsInventoryOpen() {
 bool AMainCharacter::GetIsGunInventoryOpen() {
 	return bIsGunInventoryOpen;
 }
+
+bool AMainCharacter::GetIsArmorInventoryOpen() {
+	return bIsArmorInventoryOpen;
+}
 USkeletalMeshComponent* AMainCharacter::GetGunComp() {
 	return GunComp;
 }
@@ -962,6 +1144,10 @@ TArray<APickupItem*> AMainCharacter::GetInventory() {
 
 TArray<APickupItem*> AMainCharacter::GetGunInventory() {
 	return GunInventory;
+}
+
+TArray<APickupItem*> AMainCharacter::GetArmorInventory(){
+	return ArmorInventory;
 }
 
 EPerspective AMainCharacter::GetPerspective() {
@@ -1000,6 +1186,53 @@ void AMainCharacter::Damage(float Damage) {
 	Health = Health - Damage;
 }
 
+void AMainCharacter::SetChest(FArmorInformation ChestInfo, APickupItem* NewChestActor) {
+	CurrentChest = ChestInfo;
+	ChestActor = NewChestActor;
+	//recalculate damage mitigation
+	CalculateMitigation();
+}
+
+void AMainCharacter::SetBoots(FArmorInformation BootInfo, APickupItem* NewBootActor) {
+	CurrentBoots = BootInfo;
+	BootActor = NewBootActor;
+	//recalculate damage mitigation
+	CalculateMitigation();
+}
+
+void AMainCharacter::SetHelmet(FArmorInformation HelmetInfo, APickupItem* NewHelmetActor) {
+	CurrentHelmet = HelmetInfo;
+	HelmetActor = NewHelmetActor;
+	//recalculate damage mitigation
+	CalculateMitigation();
+}
+
+void AMainCharacter::SetPants(FArmorInformation PantsInfo, APickupItem* NewPantsActor) {
+	CurrentPants = PantsInfo;
+	PantsActor = NewPantsActor;
+	//recalculate damage mitigation
+	CalculateMitigation();
+}
+
+void AMainCharacter::CalculateMitigation() {
+	DamageMitigation = CurrentChest.DamageMitigation + CurrentBoots.DamageMitigation + CurrentHelmet.DamageMitigation + CurrentPants.DamageMitigation;
+}
+
+APickupItem* AMainCharacter::GetBootActor() {
+	return BootActor;
+}
+
+APickupItem* AMainCharacter::GetChestActor() {
+	return ChestActor;
+}
+
+APickupItem* AMainCharacter::GetHelmetActor() {
+	return HelmetActor;
+}
+
+APickupItem* AMainCharacter::GetPantsActor() {
+	return PantsActor;
+}
 void AMainCharacter::SaveGame() {
 	//get reference to save game
 	USavedGame* SaveGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));

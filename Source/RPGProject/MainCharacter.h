@@ -13,6 +13,7 @@
 
 #define MAX_INVENTORY_ITEMS 10
 #define MAX_GUNINVENTORY_ITEMS 8
+#define MAX_ARMORINVENTORY_ITEMS 20
 
 UCLASS()
 class RPGPROJECT_API AMainCharacter : public ACharacter
@@ -143,11 +144,18 @@ private:
 	UFUNCTION()
 		void Melee();
 
+	//function to calculate total damage mitigation
+	UFUNCTION()
+		void CalculateMitigation();
+
     UPROPERTY()
     bool bIsInventoryOpen = false;
 
 	UPROPERTY()
 		bool bIsGunInventoryOpen = false;
+
+	UPROPERTY()
+		bool bIsArmorInventoryOpen = false;
 
     //The actual Inventory
     UPROPERTY(VisibleAnywhere)
@@ -156,6 +164,10 @@ private:
 	//Gun inventory
 	UPROPERTY(VisibleAnywhere)
 		TArray<APickupItem*> GunInventory;
+
+	//armor Inventory
+	UPROPERTY(VisibleAnywhere)
+		TArray<APickupItem*> ArmorInventory;
 
 	//array for pickup status to be saved
 	TArray<bool> PickupStatus;
@@ -226,6 +238,34 @@ private:
 	//variable for gun information
 	UPROPERTY()
 		FGunInformation CurrentGun;
+
+	//variables for equipped armor
+	UPROPERTY()
+		FArmorInformation CurrentChest;
+
+	UPROPERTY()
+		APickupItem* ChestActor;
+
+	UPROPERTY()
+		FArmorInformation CurrentBoots;
+
+	UPROPERTY()
+		APickupItem* BootActor;
+
+	UPROPERTY()
+		FArmorInformation CurrentHelmet;
+
+	UPROPERTY()
+		APickupItem* HelmetActor;
+
+	UPROPERTY()
+		FArmorInformation CurrentPants;
+
+	UPROPERTY()
+		APickupItem* PantsActor;
+
+	UPROPERTY()
+		float DamageMitigation = 1;
 	
 	UPROPERTY()
 		float MeleeRange = 50;
@@ -244,6 +284,9 @@ private:
 
 	UPROPERTY()
 		UInventoryWidget* GunInventoryRef;
+
+	UPROPERTY()
+		UInventoryWidget* ArmorInventoryRef;
 
 	UPROPERTY()
 	FTimerHandle ReloadTimer;
@@ -306,6 +349,9 @@ public:
 		bool GetIsGunInventoryOpen();
 
 	UFUNCTION(BlueprintCallable)
+		bool GetIsArmorInventoryOpen();
+
+	UFUNCTION(BlueprintCallable)
 	bool GetIsCrouching();
 
 	UFUNCTION(BlueprintCallable)
@@ -330,10 +376,25 @@ public:
 		TArray<APickupItem*> GetGunInventory();
 
 	UFUNCTION(BlueprintCallable)
+		TArray<APickupItem*> GetArmorInventory();
+
+	UFUNCTION(BlueprintCallable)
 		EPerspective GetPerspective();
 
 	UFUNCTION(BlueprintCallable)
 		FGunInformation GetCurrentGun();
+
+	UFUNCTION(BlueprintCallable)
+		APickupItem* GetBootActor();
+
+	UFUNCTION(BlueprintCallable)
+		APickupItem* GetChestActor();
+
+	UFUNCTION(BlueprintCallable)
+		APickupItem* GetHelmetActor();
+
+	UFUNCTION(BlueprintCallable)
+		APickupItem* GetPantsActor();
 
     //sets a new equipped item based on texture
     UFUNCTION(BlueprintCallable)
@@ -358,6 +419,9 @@ public:
 		void HandleGunInventoryInput();
 
 	UFUNCTION(BlueprintCallable)
+		void HandleArmorInventoryInput();
+
+	UFUNCTION(BlueprintCallable)
 	void ItemUsed();
 
 	UFUNCTION(BlueprintCallable)
@@ -368,6 +432,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void Damage(float Damage);
+
+	UFUNCTION(BlueprintCallable)
+		void SetChest(FArmorInformation ChestInfo, APickupItem* NewChestActor);
+
+	UFUNCTION(BlueprintCallable)
+		void SetBoots(FArmorInformation BootInfo, APickupItem* NewBootActor);
+
+	UFUNCTION(BlueprintCallable)
+		void SetHelmet(FArmorInformation HelmetInfo, APickupItem* NewHelmetActor);
+
+	UFUNCTION(BlueprintCallable)
+		void SetPants(FArmorInformation PantsInfo, APickupItem* NewPantsActor);
 
 	UFUNCTION(BlueprintCallable)
 		void SaveGame();

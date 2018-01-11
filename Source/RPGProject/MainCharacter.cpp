@@ -763,7 +763,7 @@ void AMainCharacter::PickupItem(){
 			}
 		}
 
-		else if (AvailableSlot != INDEX_NONE) {
+		else if (AvailableSlot != INDEX_NONE && LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Inventory) {
 			//add item to first valid slot
 			Inventory[AvailableSlot] = LastSeenItem;
 
@@ -775,7 +775,7 @@ void AMainCharacter::PickupItem(){
 			}
 		}
 		else {
-			if (GEngine) {
+			if (GEngine && LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Inventory) {
 				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, TEXT("Inventory full"));
 			}
 		}
@@ -1183,7 +1183,7 @@ void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 }
 
 void AMainCharacter::Damage(float Damage) {
-	Health = Health - Damage;
+	Health=- Damage / DamageMitigation;
 }
 
 void AMainCharacter::SetChest(FArmorInformation ChestInfo, APickupItem* NewChestActor) {

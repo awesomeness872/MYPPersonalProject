@@ -42,6 +42,14 @@ FPickupInformation APickupItem::GetPickupInfo() {
 	return PickupInfo;
 }
 
+FArmorInformation APickupItem::GetArmorInfo() {
+	return ArmorInfo;
+}
+
+FGunInformation APickupItem::GetGunInfo() {
+	return GunInfo;
+}
+
 void APickupItem::SetPickupInfo(FPickupInformation NewInfo) {
 	PickupInfo = NewInfo;
 }

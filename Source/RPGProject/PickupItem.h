@@ -88,6 +88,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FPickupInformation GetPickupInfo();
 
+	UFUNCTION(BlueprintCallable)
+		FArmorInformation GetArmorInfo();
+
+	UFUNCTION(BlueprintCallable)
+		FGunInformation GetGunInfo();
+
 	//sets PickupInfo
 	UFUNCTION(BlueprintCallable)
 		void SetPickupInfo(FPickupInformation NewInfo);

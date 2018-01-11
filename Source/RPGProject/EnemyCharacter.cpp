@@ -85,7 +85,7 @@ void AEnemyCharacter::Despawn() {
 }
 
 void AEnemyCharacter::Damage(float Damage) {
-	Health = Health - Damage;
+	Health =- Damage;
 }
 
 FVector AEnemyCharacter::GetPlayerLocation() {

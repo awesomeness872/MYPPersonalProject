@@ -608,7 +608,8 @@ void AMainCharacter::PickupItem(){
 		}
 		//add armor to inventory
 		if (LastSeenItem->PickupInfo.PickupType == EPickupType::PT_Armor) {
-			if (AvailableGunSlot != INDEX_NONE) {
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Armor added"));
+			if (AvailableArmorSlot != INDEX_NONE) {
 				//determine how many of each armor types are in the inventory
 				int BootCount = 0;
 				int ChestCount = 0;
@@ -798,6 +799,7 @@ void AMainCharacter::PauseMenu() {
 	//open pause menu
 	if (Con) Con->PauseGame();
 }
+
 //called when inventory is pressed
 void AMainCharacter::HandleInventoryInput(){
 	if (!bIsGunInventoryOpen && !bIsArmorInventoryOpen) {
@@ -874,7 +876,7 @@ void AMainCharacter::SetEquippedItem(UTexture2D * Texture){
 void AMainCharacter::DropEquippedItem(){
     if (CurrentlyEquippedItem){
         int32 IndexOfItem;
-        if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)){
+        if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem) || GunInventory.Find(CurrentlyEquippedItem, IndexOfItem) || ArmorInventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
 			//raycast to determine where to place item
 			FVector StartLocation = CameraComp->GetComponentLocation();
 
@@ -920,7 +922,7 @@ void AMainCharacter::ItemUsed() {
 		int32 IndexOfItem;
 		if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
 			//destroy item in world
-			CurrentlyEquippedItem->Destroy();
+			//CurrentlyEquippedItem->Destroy();
 			//unreference item just used
 			Inventory[IndexOfItem] = nullptr;
 		}
@@ -933,6 +935,47 @@ void AMainCharacter::ItemUsed() {
 		if (ArmorInventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
 			//unreference
 			ArmorInventory[IndexOfItem] = nullptr;
+			//if boots, add old boots to inventory and set as equipped boots
+			if (CurrentlyEquippedItem->GetArmorInfo().ArmorType == EArmorType::AT_Boots) {
+				//if old boots equipped
+				if (BootActor != nullptr) {
+					//set boots as last seen item	
+					LastSeenItem = BootActor;
+					//re add boots
+					PickupItem();
+				}
+				BootActor = CurrentlyEquippedItem;
+			}
+			else if (CurrentlyEquippedItem->GetArmorInfo().ArmorType == EArmorType::AT_ChestPiece) {
+				//if old boots equipped
+				if (ChestActor != nullptr) {
+					//set boots as last seen item	
+					LastSeenItem = ChestActor;
+					//re add boots
+					PickupItem();
+				}
+				ChestActor = CurrentlyEquippedItem;
+			}
+			else if (CurrentlyEquippedItem->GetArmorInfo().ArmorType == EArmorType::AT_Helmet) {
+				//if old boots equipped
+				if (HelmetActor != nullptr) {
+					//set boots as last seen item	
+					LastSeenItem = HelmetActor;
+					//re add boots
+					PickupItem();
+				}
+				HelmetActor = CurrentlyEquippedItem;
+			}
+			else if (CurrentlyEquippedItem->GetArmorInfo().ArmorType == EArmorType::AT_Pants) {
+				//if old boots equipped
+				if (PantsActor != nullptr) {
+					//set boots as last seen item	
+					LastSeenItem = PantsActor;
+					//re add boots
+					PickupItem();
+				}
+				PantsActor = CurrentlyEquippedItem;
+			}
 		}
 	}
 }

@@ -40,8 +40,14 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		float AttackDamage = .1;
 
+	UPROPERTY(EditDefaultsOnly)
+		float RateOfFire = .1;
+
 	UFUNCTION(BlueprintCallable)
 		virtual void Fire();
+
+	UFUNCTION(BlueprintCallable)
+		void FireCall();
 
 	UFUNCTION(BlueprintCallable)
 		void Dead();
@@ -103,4 +109,7 @@ private:
 
 	UPROPERTY()
 		FTimerHandle DeadTimer;
+
+	UPROPERTY()
+		FTimerHandle FireTimer;
 };

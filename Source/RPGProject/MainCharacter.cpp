@@ -27,6 +27,14 @@ AMainCharacter::AMainCharacter()
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	//initialize inventory
+	Inventory.SetNum(MAX_INVENTORY_ITEMS);
+
+	//initialize GunInventory
+	GunInventory.SetNum(MAX_GUNINVENTORY_ITEMS);
+
+	//initialize ArmorInventory
+	ArmorInventory.SetNum(MAX_ARMORINVENTORY_ITEMS);
 	//load game
 	LoadGame();
 
@@ -37,15 +45,6 @@ void AMainCharacter::BeginPlay()
 
     //initialize LastSeenItem reference
     LastSeenItem = nullptr;
-
-    //initialize inventory
-    Inventory.SetNum(MAX_INVENTORY_ITEMS);
-
-	//initialize GunInventory
-	GunInventory.SetNum(MAX_GUNINVENTORY_ITEMS);
-
-	//initialize ArmorInventory
-	ArmorInventory.SetNum(MAX_ARMORINVENTORY_ITEMS);
 
 	//set GunComp to socket
 	GunComp->AttachToComponent(GetMesh(), FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), FName("WeaponSocket"));
@@ -616,7 +615,7 @@ void AMainCharacter::PickupItem(){
 				int HelmetCount = 0;
 				int PantsCount = 0;
 				for (int i = 0; i < ArmorInventory.Num(); i++) {
-					switch (LastSeenItem->ArmorInfo.ArmorType) {
+					switch (LastSeenItem->GetArmorInfo().ArmorType) {
 					case EArmorType::AT_Boots:
 						BootCount++;
 						break;
@@ -636,7 +635,7 @@ void AMainCharacter::PickupItem(){
 					}
 				}
 				//add to inventory
-				switch (LastSeenItem->ArmorInfo.ArmorType) {
+				switch (LastSeenItem->GetArmorInfo().ArmorType) {
 				//uses slots 0-4
 				case EArmorType::AT_Boots:
 					if (BootCount < 5) {
@@ -760,7 +759,8 @@ void AMainCharacter::PickupItem(){
 				}
 			}
 			if (bIsArmorInventoryOpen) {
-				ArmorInventoryRef->Show();
+				HandleArmorInventoryInput();
+				HandleArmorInventoryInput();
 			}
 		}
 
@@ -933,7 +933,7 @@ void AMainCharacter::ItemUsed() {
 			CurrentGunActor = CurrentlyEquippedItem;
 		}
 		if (ArmorInventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
-			//unreference
+			//remove from inventory
 			ArmorInventory[IndexOfItem] = nullptr;
 			//if boots, add old boots to inventory and set as equipped boots
 			if (CurrentlyEquippedItem->GetArmorInfo().ArmorType == EArmorType::AT_Boots) {

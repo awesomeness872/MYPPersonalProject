@@ -44,6 +44,10 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void AEnemyCharacter::FireCall() {
+	GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &AEnemyCharacter::Fire, RateOfFire, false);
+}
+
 void AEnemyCharacter::Fire() {
 	if (!bIsDeadCalled) {
 		//raycast to see if something that can be hit is in range

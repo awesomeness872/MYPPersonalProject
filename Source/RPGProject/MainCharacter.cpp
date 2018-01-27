@@ -759,6 +759,7 @@ void AMainCharacter::PickupItem(){
 				}
 			}
 			if (bIsArmorInventoryOpen) {
+				//stupid hack for refreshing inventory i hope works
 				HandleArmorInventoryInput();
 				HandleArmorInventoryInput();
 			}
@@ -1226,7 +1227,9 @@ void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 }
 
 void AMainCharacter::Damage(float Damage) {
-	Health=- Damage / DamageMitigation;
+	Health -= Damage / DamageMitigation;
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, FString::SanitizeFloat(Damage));
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, FString::SanitizeFloat(Health));
 }
 
 void AMainCharacter::SetChest(FArmorInformation ChestInfo, APickupItem* NewChestActor) {

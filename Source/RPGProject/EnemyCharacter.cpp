@@ -64,7 +64,7 @@ void AEnemyCharacter::Fire() {
 		//raycast
 		GetWorld()->LineTraceSingleByChannel(RaycastHit, StartLocation, EndLocation, ECollisionChannel::ECC_GameTraceChannel1, CQP);
 
-		if (RaycastHit.GetActor() != nullptr) {
+		if (RaycastHit.GetActor() == UGameplayStatics::GetPlayerPawn(GetWorld(), 0)) {
 			AMainCharacter* MC = Cast <AMainCharacter>(RaycastHit.GetActor());
 			MC->Damage(AttackDamage);
 		}

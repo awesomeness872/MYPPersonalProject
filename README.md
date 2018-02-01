@@ -25,5 +25,9 @@ Sorry there's not much content. But you can...
 
 *Save and load the game
 
+*Equip armor
+
+*Have a more stable experience than first Pre-Alpha
+
 *Find bugs so I can fix them!
 

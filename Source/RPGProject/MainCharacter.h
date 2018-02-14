@@ -298,6 +298,12 @@ private:
 		EPerspective Perspective = EPerspective::P_3P;
 
 public:	 
+	UPROPERTY(BlueprintReadOnly)
+		bool savingGame = false;
+
+	UPROPERTY()
+		bool loadingGame = false;
+
 	UPROPERTY(BlueprintReadWrite)
 		APickupItem* CurrentGunActor;
 

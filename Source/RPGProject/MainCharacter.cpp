@@ -1280,6 +1280,8 @@ APickupItem* AMainCharacter::GetPantsActor() {
 	return PantsActor;
 }
 void AMainCharacter::SaveGame() {
+	//let other classes know game is saving
+	savingGame = true;
 	//get reference to save game
 	USavedGame* SaveGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
 	//set reference to playercontroller
@@ -1322,9 +1324,13 @@ void AMainCharacter::SaveGame() {
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Saved"));
 	}
+	//let other classes know saving is done
+	savingGame = false;
 }
 
 void AMainCharacter::LoadGame() {
+	//set variable to loet other classes know it's loading
+	loadingGame = true;
 	//get reference to save game
 	USavedGame* LoadGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
 	//load game
@@ -1350,7 +1356,7 @@ void AMainCharacter::LoadGame() {
 		SetPerspective(LoadGameInstance->PlayerPerspective);
 		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
-			if (LoadGameInstance->EnemyClass[i]->IsActorInitialized()) {
+			if (LoadGameInstance->EnemyClass[i] != nullptr) {
 				AEnemyCharacter* EnemyRef = Cast<AEnemyCharacter>(LoadGameInstance->EnemyClass[i]);
 				EnemyRef->EnemyType = LoadGameInstance->EnemyType[i];
 				EnemyRef->SetHealth(LoadGameInstance->EnemyHealths[i]);
@@ -1363,7 +1369,7 @@ void AMainCharacter::LoadGame() {
 		}
 		//load variables for pickups
 		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
-			if (LoadGameInstance->PickupClass[i]->IsActorInitialized()) {
+			if (LoadGameInstance->PickupClass[i] == nullptr) {
 				APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
 				PickupRef->SetPickupInfo(LoadGameInstance->PickupInfo[i]);
 				PickupRef->SetPickedUp(LoadGameInstance->PickupInfo[i].bPickedUp);
@@ -1375,4 +1381,6 @@ void AMainCharacter::LoadGame() {
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded"));
 		}
 	}
+	//set variables to let other classes know loading is done
+	loadingGame = false;
 }

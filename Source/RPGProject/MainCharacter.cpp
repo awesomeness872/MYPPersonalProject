@@ -1318,6 +1318,7 @@ void AMainCharacter::SaveGame() {
 		SaveGameInstance->PickupMesh.Add(PickupRef->PickupMesh);
 		SaveGameInstance->PickupLocation.Add(PickupRef->GetActorTransform());
 		SaveGameInstance->PickupClass.Add(PickupRef);
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, PickupItr->GetName());
 	}	
 	//save game to slot
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
@@ -1349,7 +1350,7 @@ void AMainCharacter::LoadGame() {
 		//load player stamina 
 		Stamina = LoadGameInstance->PlayerStamina;
 		//load player gun information
-		CurrentGun = LoadGameInstance->PlayerCurrentGun; 
+		SwitchGun(LoadGameInstance->PlayerCurrentGun);
 		CurrentGunActor = LoadGameInstance->PlayerCurrentGunActor;
 		GunInventory = LoadGameInstance->PlayerGunInventory;
 		//load player perspective
@@ -1369,12 +1370,13 @@ void AMainCharacter::LoadGame() {
 		}
 		//load variables for pickups
 		for (int i = 0; i < LoadGameInstance->PickupClass.Num(); i++) {
-			if (LoadGameInstance->PickupClass[i] == nullptr) {
+			if (LoadGameInstance->PickupClass[i] != nullptr) {
 				APickupItem* PickupRef = Cast<APickupItem>(LoadGameInstance->PickupClass[i]);
 				PickupRef->SetPickupInfo(LoadGameInstance->PickupInfo[i]);
-				PickupRef->SetPickedUp(LoadGameInstance->PickupInfo[i].bPickedUp);
 				PickupRef->PickupMesh = LoadGameInstance->PickupMesh[i];
+				PickupRef->SetPickedUp(LoadGameInstance->PickupInfo[i].bPickedUp);
 				PickupRef->SetActorTransform(LoadGameInstance->PickupLocation[i]);
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, LoadGameInstance->PickupClass[i]->GetName());
 			}
 		}
 		if (GEngine) {

@@ -148,7 +148,7 @@ void AMainCharacter::MoveForward(float Value)
 			bIsMoving = true;
 			// find out which way is forward
 			FRotator Rotation = Controller->GetControlRotation();
-			// Limit pitch when walking or falling
+			//Limit pitch when walking or falling
 			if (GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling())
 			{
 				Rotation.Pitch = 0.0f;

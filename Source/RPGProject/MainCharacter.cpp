@@ -35,8 +35,6 @@ void AMainCharacter::BeginPlay()
 
 	//initialize ArmorInventory
 	ArmorInventory.SetNum(MAX_ARMORINVENTORY_ITEMS);
-	//load game
-	LoadGame();
 
     //display that this class is being used
     if (GEngine){
@@ -51,6 +49,9 @@ void AMainCharacter::BeginPlay()
 
 	//set gun type to none
 	CurrentGun.Type = EGunType::GT_None;
+
+	//load game
+	LoadGame();
 
 	//set camera and mesh for perspective
 	SetPerspective(GetPerspective());
@@ -922,8 +923,6 @@ void AMainCharacter::ItemUsed() {
 	if (CurrentlyEquippedItem) {
 		int32 IndexOfItem;
 		if (Inventory.Find(CurrentlyEquippedItem, IndexOfItem)) {
-			//destroy item in world
-			//CurrentlyEquippedItem->Destroy();
 			//unreference item just used
 			Inventory[IndexOfItem] = nullptr;
 		}
@@ -1019,11 +1018,13 @@ void AMainCharacter::SwitchGun(FGunInformation NewGun) {
 	case EGunType::GT_LA34:
 		CurrentGun.CurrentAmmo += LA_34.CurrentAmmo;
 		CurrentGun.TotalAmmo += LA_34.TotalAmmo;
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, TEXT("LA-34 equipped"));
 		break;
 		//if NewGun is an MG-45
 	case EGunType::GT_MG45:
 		CurrentGun.CurrentAmmo += MG_45.CurrentAmmo;
 		CurrentGun.TotalAmmo += MG_45.TotalAmmo;
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, TEXT("MG-45 equipped"));
 		break;
 		//if NewGun is Invalid
 	default:
@@ -1228,7 +1229,7 @@ void AMainCharacter::SetPerspective(EPerspective NewPerspective) {
 
 void AMainCharacter::Damage(float Damage) {
 	Health -= Damage / DamageMitigation;
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, FString::SanitizeFloat(Damage));
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::SanitizeFloat(Damage));
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, FString::SanitizeFloat(Health));
 }
 
@@ -1309,6 +1310,8 @@ void AMainCharacter::SaveGame() {
 		SaveGameInstance->EnemyHealths.Add(EnemyRef->GetHealth());
 		SaveGameInstance->EnemyTransform.Add(EnemyRef->GetActorTransform());
 		SaveGameInstance->EnemyDead.Add(EnemyRef->GetDead());
+		SaveGameInstance->EnemyPlayerLocation.Add(EnemyRef->GetPlayerLocation());
+		SaveGameInstance->EnemyHasFoundPlayer.Add(EnemyRef->GetHasFoundPlayer());
 		SaveGameInstance->EnemyClass.Add(EnemyRef);
 	}
 	//save pickupitems in game
@@ -1318,7 +1321,6 @@ void AMainCharacter::SaveGame() {
 		SaveGameInstance->PickupMesh.Add(PickupRef->PickupMesh);
 		SaveGameInstance->PickupLocation.Add(PickupRef->GetActorTransform());
 		SaveGameInstance->PickupClass.Add(PickupRef);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, PickupItr->GetName());
 	}	
 	//save game to slot
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);

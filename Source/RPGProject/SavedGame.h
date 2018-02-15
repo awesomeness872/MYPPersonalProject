@@ -57,6 +57,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = MainCharacter)
 		EPerspective PlayerPerspective;
 
+
+
 	//enemy type
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<EEnemyType> EnemyType;
@@ -73,9 +75,17 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<bool> EnemyDead;
 
+	//enemy tracking information
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<FVector> EnemyPlayerLocation;
+
+	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
+		TArray<bool> EnemyHasFoundPlayer;
 	//enemy class
 	UPROPERTY(VisibleAnywhere, Category = EnemyCharacter)
 		TArray<AEnemyCharacter*> EnemyClass;
+
+
 
 	//pickup status
 	UPROPERTY(VisibleAnywhere, Category = PickupItem)

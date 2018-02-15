@@ -75,7 +75,7 @@ void AEnemyCharacter::Dead() {
 	//ragdoll
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Dead"));
 	//change value of bDeadCalled
 	bIsDeadCalled = true;
 
@@ -84,7 +84,7 @@ void AEnemyCharacter::Dead() {
 
 void AEnemyCharacter::Despawn() {
 	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+	GetMesh()->SetCollisionProfileName(TEXT("Dead"));
 	GetMesh()->SetVisibility(false);
 }
 

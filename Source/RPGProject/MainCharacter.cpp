@@ -1332,14 +1332,14 @@ void AMainCharacter::SaveGame() {
 }
 
 void AMainCharacter::LoadGame() {
-	//set variable to loet other classes know it's loading
-	loadingGame = true;
 	//get reference to save game
 	USavedGame* LoadGameInstance = Cast<USavedGame>(UGameplayStatics::CreateSaveGameObject(USavedGame::StaticClass()));
 	//load game
 	LoadGameInstance = Cast<USavedGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->SaveSlotName, LoadGameInstance->UserIndex));
 	//check if saved game exists
 	if (LoadGameInstance) {
+		//set variable to loet other classes know it's loading
+		loadingGame = true;
 		//set value of bOpening in player controller
 		AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
 		Con->SetOpening(LoadGameInstance->bOpening);
@@ -1384,7 +1384,7 @@ void AMainCharacter::LoadGame() {
 		if (GEngine) {
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Loaded"));
 		}
+		//set variables to let other classes know loading is done
+		loadingGame = false;
 	}
-	//set variables to let other classes know loading is done
-	loadingGame = false;
 }

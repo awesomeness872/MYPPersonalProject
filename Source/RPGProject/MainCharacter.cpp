@@ -1050,6 +1050,14 @@ void AMainCharacter::AddAmmo(float AmmoToAdd, EGunType GunType) {
 	}
 }
 
+void AMainCharacter::StartDialogue(FDialogueInformation DialogueInfo) {
+	//cast to player controller and show dialogue 
+	AMC_PlayerController* Con = Cast<AMC_PlayerController>(GetController());
+	if (Con) {
+		Con->ToggleDialogue(DialogueInfo);
+	}
+}
+
 //called manually, returns  value of bIsAimingDownSights
 bool AMainCharacter::GetIsAimingDownSights(){
     return bIsAimingDownSights;

@@ -150,6 +150,25 @@ void AMC_PlayerController::HandleArmorInventoryInput() {
 	}
 }
 
+void AMC_PlayerController::ToggleDialogue(FDialogueInformation DialogueInfo) {
+	//check if set in blueprint
+	if (wUMG_Dialogue) {
+		//create widget
+		UMG_Dialogue = CreateWidget<UDialogueWidget>(this, wUMG_Dialogue);
+		//check if holding widget
+		if (UMG_Dialogue) {
+			//check if dialogue is open, if not -> open it and set dialogue information, if open -> close it
+			if (bIsDialogueOpen == false) {
+				UMG_Dialogue->AddToViewport();
+				UMG_Dialogue->UpdateDialogueOutputFromPlayer(DialogueInfo);
+			}
+			else {
+				UMG_Dialogue->RemoveFromViewport();
+			}
+		}
+	}
+}
+
 void AMC_PlayerController::PauseGame() {
 	//check if asset is assigned in blueprint
 	if (wUMG_PauseMenu) {

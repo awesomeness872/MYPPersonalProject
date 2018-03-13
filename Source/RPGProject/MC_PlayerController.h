@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "InventoryWidget.h"
 #include "SavedGame.h"
+#include "DialogueStruct.h"
+#include "DialogueWidget.h"
 #include "MC_PlayerController.generated.h"
 
 /**
@@ -32,6 +34,8 @@ private:
 	bool bIsGunInventoryOpen = false;
 
 	bool bIsArmorInventoryOpen = false;
+
+	bool bIsDialogueOpen = false;
 
 private:
     //inventorywidget blueprint reference
@@ -66,6 +70,12 @@ public:
 	UPROPERTY()
 		UUserWidget* UMG_PauseMenu;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+		TSubclassOf<class UDialogueWidget> wUMG_Dialogue;
+
+	UPROPERTY()
+		UDialogueWidget* UMG_Dialogue;
+
 	UPROPERTY(EditDefaultsOnly)
 		bool bOpening = false;
 
@@ -77,6 +87,9 @@ public:
 
 	//opens or closes the armor inventory
 	void HandleArmorInventoryInput();
+
+	//opens or closes DialogueWidget
+	void ToggleDialogue(FDialogueInformation DialogueInfo);
 
     virtual void Possess(APawn* InPawn) override;
 

@@ -9,6 +9,7 @@
 #include "EnemyCharacter.h"
 #include "InteractableItem.h"
 #include "SavedGame.h"
+#include "DialogueStruct.h"
 #include "MainCharacter.generated.h"
 
 #define MAX_INVENTORY_ITEMS 10
@@ -438,6 +439,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void Damage(float Damage);
+
+	UFUNCTION(BlueprintCallable)
+		void StartDialogue(FDialogueInformation DialogueInfo);
 
 	UFUNCTION(BlueprintCallable)
 		void SetChest(FArmorInformation ChestInfo, APickupItem* NewChestActor);

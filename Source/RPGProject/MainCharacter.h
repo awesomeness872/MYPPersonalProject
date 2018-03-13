@@ -61,6 +61,9 @@ private:
     UPROPERTY(VisibleAnywhere)
     UCameraComponent* CameraComp;
 
+	UPROPERTY(VisibleAnywhere)
+		USpringArmComponent* CameraBoomComp;
+
 	UPROPERTY(EditDefaultsOnly, Category = Weapon)
 	USkeletalMeshComponent* GunComp;
 

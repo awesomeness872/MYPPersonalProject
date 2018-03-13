@@ -10,11 +10,21 @@ AMainCharacter::AMainCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-    //create cameracomp
-    CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
+	//create RootComponent
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 
-    //allow pawn to control rotation
-    CameraComp->bUsePawnControlRotation = true;
+	//create cameraboomcomp
+	CameraBoomComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
+
+	CameraBoomComp->SetupAttachment(GetMesh());
+	CameraBoomComp->SetRelativeLocationAndRotation(FVector(-50.0f, 0.0f, 150.0f), FRotator(0.0f, -20.0f, 80.0f));
+	CameraBoomComp->TargetArmLength = 150.0f;
+	CameraBoomComp->bUsePawnControlRotation = true;
+	//create cameracomp
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
+
+	CameraComp->SetupAttachment(CameraBoomComp, USpringArmComponent::SocketName);
+	CameraComp->SetRelativeLocationAndRotation(FVector(0.0f), FRotator(0.0f));
 
 	//initialize GunComp
 	GunComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun Component"));
@@ -54,7 +64,7 @@ void AMainCharacter::BeginPlay()
 	LoadGame();
 
 	//set camera and mesh for perspective
-	SetPerspective(GetPerspective());
+	//SetPerspective(GetPerspective());
 }
 
 // Called every frame
@@ -287,9 +297,9 @@ void AMainCharacter::CrouchPressed() {
 	bIsCrouching = true;
 
 	//lowers camera
-	if (Perspective == EPerspective::P_3P) {
+	/*if (Perspective == EPerspective::P_3P) {
 		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, -60.0f));
-	}
+	}*/
 
 	//prints "Crouching"
 	if (GEngine) {
@@ -303,9 +313,9 @@ void AMainCharacter::CrouchReleased() {
 	GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
 	//put camera back
-	if (Perspective == EPerspective::P_3P) {
+	/*if (Perspective == EPerspective::P_3P) {
 		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, 60.0f));
-	}
+	}*/
 
 	//set value of bIsCrouching
 	bIsCrouching = false;
@@ -1364,7 +1374,7 @@ void AMainCharacter::LoadGame() {
 		CurrentGunActor = LoadGameInstance->PlayerCurrentGunActor;
 		GunInventory = LoadGameInstance->PlayerGunInventory;
 		//load player perspective
-		SetPerspective(LoadGameInstance->PlayerPerspective);
+		//SetPerspective(LoadGameInstance->PlayerPerspective);
 		//load variables for enemies
 		for (int i = 0; i < LoadGameInstance->EnemyClass.Num(); i++) {
 			if (LoadGameInstance->EnemyClass[i] != nullptr) {

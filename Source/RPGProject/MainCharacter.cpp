@@ -18,11 +18,10 @@ AMainCharacter::AMainCharacter()
 
 	CameraBoomComp->SetupAttachment(GetMesh());
 	CameraBoomComp->SetRelativeLocationAndRotation(FVector(-50.0f, 0.0f, 150.0f), FRotator(0.0f, -20.0f, 80.0f));
-	CameraBoomComp->TargetArmLength = 150.0f;
+	CameraBoomComp->TargetArmLength = 200.0f;
 	CameraBoomComp->bUsePawnControlRotation = true;
 	//create cameracomp
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdPersonCamera"));
-
 	CameraComp->SetupAttachment(CameraBoomComp, USpringArmComponent::SocketName);
 	CameraComp->SetRelativeLocationAndRotation(FVector(0.0f), FRotator(0.0f));
 
@@ -293,13 +292,17 @@ void AMainCharacter::CrouchPressed() {
 	//set walk speed
 	GetCharacterMovement()->MaxWalkSpeed = 265.0f;
 
+	//set capsule height to half
+	GetCapsuleComponent()->SetCapsuleHalfHeight(44);
+	GetMesh()->AddRelativeLocation(FVector(0.0f, 0.0f, 44.0f));
+	
 	//set value of bIsCrouching
 	bIsCrouching = true;
 
 	//lowers camera
-	/*if (Perspective == EPerspective::P_3P) {
-		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, -60.0f));
-	}*/
+	if (Perspective == EPerspective::P_3P) {
+		CameraBoomComp->AddRelativeLocation(FVector(0.0f, 0.0f, -60.0f));
+	}
 
 	//prints "Crouching"
 	if (GEngine) {
@@ -312,13 +315,17 @@ void AMainCharacter::CrouchReleased() {
 	//sets speed to 595
 	GetCharacterMovement()->MaxWalkSpeed = 595.0f;
 
-	//put camera back
-	/*if (Perspective == EPerspective::P_3P) {
-		CameraComp->AddRelativeLocation(FVector(0.0f, 0.0f, 60.0f));
-	}*/
+	//set capulse height to half
+	GetCapsuleComponent()->SetCapsuleHalfHeight(88);
+	GetMesh()->AddRelativeLocation(FVector(0.0f, 0.0f, -44.0f));
 
 	//set value of bIsCrouching
 	bIsCrouching = false;
+
+	//put camera back
+	if (Perspective == EPerspective::P_3P) {
+		CameraBoomComp->AddRelativeLocation(FVector(0.0f, 0.0f, 60.0f));
+	}
 }
 
 //called when aim is pressed, slows speed and zooms in
